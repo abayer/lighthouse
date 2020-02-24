@@ -174,6 +174,7 @@ func getContexts(combinedStatus *scm.CombinedStatus, logger *logrus.Entry) (sets
 			logger.Warnf(" --- status: %s as %s", status.Label, status.State.String())
 			allContexts.Insert(status.Label)
 			if status.State == scm.StateError || status.State == scm.StateFailure {
+				logger.Warnf("failure or error so in failed context we go")
 				failedContexts.Insert(status.Label)
 			}
 		}

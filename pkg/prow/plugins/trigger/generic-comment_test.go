@@ -994,7 +994,7 @@ func TestRetestFilter(t *testing.T) {
 			if err := config.SetPresubmitRegexes(testCase.presubmits); err != nil {
 				t.Fatalf("%s: could not set presubmit regexes: %v", testCase.name, err)
 			}
-			filter := pjutil.RetestFilter(testCase.failedContexts, testCase.allContexts)
+			filter := pjutil.RetestFilter(testCase.failedContexts, testCase.allContexts, nil)
 			for i, presubmit := range testCase.presubmits {
 				actualFiltered, actualForced, actualDefault := filter(presubmit)
 				expectedFiltered, expectedForced, expectedDefault := testCase.expected[i][0], testCase.expected[i][1], testCase.expected[i][2]

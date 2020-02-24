@@ -18,6 +18,7 @@ package pjutil
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -125,8 +126,13 @@ func determineSkippedPresubmits(toTrigger, toSkipSuperset []config.Presubmit, lo
 }
 
 // RetestFilter builds a filter for `/retest`
-func RetestFilter(failedContexts, allContexts sets.String) Filter {
+func RetestFilter(failedContexts, allContexts sets.String, logger *logrus.Entry) Filter {
 	return func(p config.Presubmit) (bool, bool, bool) {
+		if logger != nil {
+			logger.Warnf("context: %s", p.Context)
+			logger.Warnf("failed contexts: %s", strings.Join(failedContexts.List(), ","))
+			logger.Warnf("all contexts: %s", strings.Join(allContexts.List(), ","))
+		}
 		return failedContexts.Has(p.Context) || (!p.NeedsExplicitTrigger() && !allContexts.Has(p.Context)), false, true
 	}
 }
@@ -149,7 +155,7 @@ func PresubmitFilter(honorOkToTest bool, contextGetter contextGetter, body strin
 		if err != nil {
 			return nil, err
 		}
-		filters = append(filters, RetestFilter(failedContexts, allContexts))
+		filters = append(filters, RetestFilter(failedContexts, allContexts, logger))
 	}
 	if (honorOkToTest && OkToTestRe.MatchString(body)) || TestAllRe.MatchString(body) {
 		logger.Warn("Using test-all filter.")
