@@ -111,7 +111,7 @@ func handleGenericComment(c Client, trigger *plugins.Trigger, gc gitprovider.Gen
 			return err
 		}
 	}
-	cy, _ := yaml.Marshal(c.Config)
+	cy, _ := yaml.Marshal(c.Config.GetPresubmits(gc.Repo))
 	c.Logger.Warnf("\n\nCONFIG: %s\n\n", cy)
 
 	toTest, toSkip, err := FilterPresubmits(HonorOkToTest(trigger), c.GitHubClient, gc.Body, pr, c.Config.GetPresubmits(gc.Repo), c.Logger)
