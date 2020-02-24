@@ -151,6 +151,7 @@ func FilterPresubmits(honorOkToTest bool, gitHubClient GitHubClient, body string
 	org, repo, sha := pr.Base.Repo.Namespace, pr.Base.Repo.Name, pr.Base.Ref
 
 	contextGetter := func() (sets.String, sets.String, error) {
+		logger.Warnf("status sha: %s", sha)
 		combinedStatus, err := gitHubClient.GetCombinedStatus(org, repo, sha)
 		if err != nil {
 			return nil, nil, err
