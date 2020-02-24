@@ -79,7 +79,6 @@ func FilterPresubmits(filter Filter, changes config.ChangedFilesProvider, branch
 	var namesToTrigger []string
 	var toSkipSuperset []config.Presubmit
 	for _, presubmit := range presubmits {
-		logger.Warnf("presubmit: %s")
 		matches, forced, defaults := filter(presubmit)
 		if !matches {
 			continue
