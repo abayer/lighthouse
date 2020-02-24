@@ -152,7 +152,7 @@ func FilterPresubmits(honorOkToTest bool, gitHubClient GitHubClient, body string
 		if err != nil {
 			return nil, nil, err
 		}
-		failedContexts, allContexts := getContexts(combinedStatus)
+		failedContexts, allContexts := getContexts(combinedStatus, logger)
 		return failedContexts, allContexts, nil
 	}
 
@@ -166,11 +166,12 @@ func FilterPresubmits(honorOkToTest bool, gitHubClient GitHubClient, body string
 	return pjutil.FilterPresubmits(filter, changes, branch, presubmits, logger)
 }
 
-func getContexts(combinedStatus *scm.CombinedStatus) (sets.String, sets.String) {
+func getContexts(combinedStatus *scm.CombinedStatus, logger *logrus.Entry) (sets.String, sets.String) {
 	allContexts := sets.String{}
 	failedContexts := sets.String{}
 	if combinedStatus != nil {
 		for _, status := range combinedStatus.Statuses {
+			logger.Warnf(" --- status: %s as %s", status.Label, status.State.String())
 			allContexts.Insert(status.Label)
 			if status.State == scm.StateError || status.State == scm.StateFailure {
 				failedContexts.Insert(status.Label)

@@ -144,7 +144,7 @@ func PresubmitFilter(honorOkToTest bool, contextGetter contextGetter, body strin
 	var filters []Filter
 	filters = append(filters, CommandFilter(body))
 	if RetestRe.MatchString(body) {
-		logger.Debug("Using retest filter.")
+		logger.Warn("Using retest filter.")
 		failedContexts, allContexts, err := contextGetter()
 		if err != nil {
 			return nil, err
@@ -152,7 +152,7 @@ func PresubmitFilter(honorOkToTest bool, contextGetter contextGetter, body strin
 		filters = append(filters, RetestFilter(failedContexts, allContexts))
 	}
 	if (honorOkToTest && OkToTestRe.MatchString(body)) || TestAllRe.MatchString(body) {
-		logger.Debug("Using test-all filter.")
+		logger.Warn("Using test-all filter.")
 		filters = append(filters, TestAllFilter())
 	}
 	return AggregateFilter(filters), nil
