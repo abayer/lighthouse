@@ -24,6 +24,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -47,6 +48,7 @@ import (
 	tektonclient "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/yaml"
 )
 
 // For mocking out sleep during unit tests.
@@ -325,7 +327,8 @@ func (c *DefaultController) Sync() error {
 		}
 		c.logger.WithField("duration", time.Since(start).String()).Debug("Listed ProwJobs from the cluster.")
 		pjs = pjList.Items
-
+		pjy, _ := yaml.Marshal(pjList)
+		c.logger.Warnf("pj list: %s", pjy)
 		if label := c.config().Tide.BlockerLabel; label != "" {
 			c.logger.Debugf("Searching for blocking issues (label %q).", label)
 			orgExcepts, repos := c.config().Tide.Queries.OrgExceptionsAndRepos()
@@ -735,6 +738,7 @@ func accumulate(presubmits map[int][]config.Presubmit, prs []PullRequest, pjs []
 		// Accumulate the best result for each job (Passing > Pending > Failing/Unknown)
 		// We can ignore the baseSHA here because the subPool only contains ProwJobs with the correct baseSHA
 		psStates := make(map[string]simpleState)
+		log.Logger.Warnf("pj count: %d", len(pjs))
 		for _, pj := range pjs {
 			log.Logger.Warnf("PJ from PA: %s, context: %s, state: %s", pj.Name, pj.Spec.Context, toSimpleState(pj.Status.State))
 			if pj.Spec.Type != plumber.PresubmitJob {
