@@ -736,6 +736,7 @@ func accumulate(presubmits map[int][]config.Presubmit, prs []PullRequest, pjs []
 		// We can ignore the baseSHA here because the subPool only contains ProwJobs with the correct baseSHA
 		psStates := make(map[string]simpleState)
 		for _, pj := range pjs {
+			log.Logger.Warnf("PJ from PA: %s, context: %s, state: %s", pj.Name, pj.Spec.Context, toSimpleState(pj.Status.State))
 			if pj.Spec.Type != plumber.PresubmitJob {
 				continue
 			}
@@ -754,7 +755,6 @@ func accumulate(presubmits map[int][]config.Presubmit, prs []PullRequest, pjs []
 			} else if oldState == pendingState && newState == successState {
 				psStates[name] = successState
 			}
-			log.Logger.Warnf("PJ from PA: %s, context: %s, state: %s", pj.Name, pj.Spec.Context, newState)
 		}
 		// The overall result for the PR is the worst of the best of all its
 		// required Presubmits
