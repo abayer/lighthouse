@@ -326,8 +326,7 @@ func (c *DefaultController) Sync() error {
 		}
 		c.logger.WithField("duration", time.Since(start).String()).Debug("Listed ProwJobs from the cluster.")
 		pjs = pjList.Items
-		pjy, _ := yaml.Marshal(pjList)
-		c.logger.Warnf("pj list: %s", pjy)
+
 		if label := c.config().Tide.BlockerLabel; label != "" {
 			c.logger.Debugf("Searching for blocking issues (label %q).", label)
 			orgExcepts, repos := c.config().Tide.Queries.OrgExceptionsAndRepos()
@@ -1378,7 +1377,10 @@ func (c *DefaultController) dividePool(pool map[string]PullRequest, pjs []plumbe
 		sps[fn].prs = append(sps[fn].prs, pr)
 	}
 	for _, pj := range pjs {
+		pjy, _ := yaml.Marshal(pj)
+		c.logger.Warnf("pj %s: %s", pj.Name, pjy)
 		if pj.Spec.Type != plumber.PresubmitJob && pj.Spec.Type != plumber.BatchJob {
+			c.logger.Warnf("pj %s is %s not presubmit or batch?", pj.Spec.Type)
 			continue
 		}
 		fn := poolKey(pj.Spec.Refs.Org, pj.Spec.Refs.Repo, pj.Spec.Refs.BaseRef)
@@ -1400,9 +1402,15 @@ func (c *DefaultController) dividePool(pool map[string]PullRequest, pjs []plumbe
 				WithField("repo", refs.Repo).WithField("baseRef", refs.BaseRef).Debugf("base sha mismatch")
 		}
 		if sps[fn] == nil || pj.Spec.Refs.BaseSHA != sps[fn].sha {
+			if sps[fn] == nil {
+				c.logger.Warnf("sps fn for this is nil")
+			} else {
+				c.logger.Warnf("basesha is %s, sps fn sha is %s", pj.Spec.Refs.BaseSHA, sps[fn].sha)
+			}
 			continue
 		}
 		sps[fn].pjs = append(sps[fn].pjs, pj)
+		c.logger.Warnf("subpool pj count is now %d", len(sps[fn].pjs))
 	}
 	return sps, nil
 }
