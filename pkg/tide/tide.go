@@ -738,12 +738,19 @@ func accumulate(presubmits map[int][]config.Presubmit, prs []PullRequest, pjs []
 		for _, pj := range pjs {
 			log.Logger.Warnf("PJ from PA: %s, context: %s, state: %s", pj.Name, pj.Spec.Context, toSimpleState(pj.Status.State))
 			if pj.Spec.Type != plumber.PresubmitJob {
+				log.Logger.Warnf("type is %s so moving on", pj.Spec.Type)
 				continue
 			}
-			if len(pj.Spec.Refs.Pulls) == 0 || pj.Spec.Refs.Pulls[0].Number != int(pr.Number) {
+			if len(pj.Spec.Refs.Pulls) == 0 {
+				log.Logger.Warnf("pulls is %d")
+				continue
+			}
+			if pj.Spec.Refs.Pulls[0].Number != int(pr.Number) {
+				log.Logger.Warnf("pull number on pj is %d, but pull on pr is %s", pj.Spec.Refs.Pulls[0].Number, pr.Number)
 				continue
 			}
 			if pj.Spec.Refs.Pulls[0].SHA != string(pr.HeadRefOID) {
+				log.Logger.Warnf("sha on pj is %s, but sha on pr is %s", pj.Spec.Refs.Pulls[0].SHA, pr.HeadRefOID)
 				continue
 			}
 
