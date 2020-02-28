@@ -243,6 +243,7 @@ func NewController(ghcSync, ghcStatus *gitprovider.Client, prowJobClient prowJob
 // finish its last update loop before terminating.
 // DefaultController.Sync() should not be used after this function is called.
 func (c *DefaultController) Shutdown() {
+	c.gc.Clean()
 	c.History.Flush()
 	c.sc.shutdown()
 }
