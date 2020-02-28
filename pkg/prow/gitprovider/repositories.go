@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jenkins-x/go-scm/scm"
+	"github.com/pkg/errors"
 )
 
 // GetRepoLabels returns the repository labels
@@ -70,7 +71,7 @@ func (c *Client) GetCombinedStatus(owner, repo, ref string) (*scm.CombinedStatus
 	ctx := context.Background()
 	fullName := c.repositoryName(owner, repo)
 	resources, _, err := c.client.Repositories.FindCombinedStatus(ctx, fullName, ref)
-	return resources, err
+	return resources, errors.Wrapf(err, "combined status for %s %s %s", owner, repo, ref)
 }
 
 // HasPermission returns true if GetUserPermission() returns any of the roles.
