@@ -148,7 +148,7 @@ func main() {
 	gitToken := os.Getenv("GIT_TOKEN")
 
 	cfg := configAgent.Config
-	c, err := githubapp.NewTideController(configAgent, botName, gitKind, gitToken, o.maxRecordsPerPool, opener, o.historyURI, o.statusURI)
+	c, err := githubapp.NewTideController(configAgent, botName, gitKind, gitToken, serverURL, o.maxRecordsPerPool, opener, o.historyURI, o.statusURI)
 	if err != nil {
 		logrus.WithError(err).Fatal("Error creating Tide controller.")
 	}
