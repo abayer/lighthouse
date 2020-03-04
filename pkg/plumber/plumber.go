@@ -142,7 +142,9 @@ func (b *PipelineBuilder) List(opts metav1.ListOptions) (*PipelineOptionsList, e
 	}
 	answer := &PipelineOptionsList{}
 	for _, pa := range list.Items {
+		logrus.Warnf("PA NAMED %s", pa.Name)
 		item := ToPipelineOptions(&pa)
+		logrus.Warnf("PIPELINEOPTION NAMED %s", item.Name)
 		answer.Items = append(answer.Items, item)
 	}
 	return answer, nil
