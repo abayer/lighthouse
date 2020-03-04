@@ -254,7 +254,7 @@ func runRequested(c Client, pr *scm.PullRequest, requestedJobs []config.Presubmi
 	for _, job := range requestedJobs {
 		c.Logger.Infof("Starting %s build.", job.Name)
 		pj := pjutil.NewPresubmit(pr, baseSHA, job, eventGUID)
-		c.Logger.WithFields(pjutil.PlumberJobFields(&pj)).Info("Creating a new plumberJob.")
+		c.Logger.WithFields(pjutil.PlumberJobFields(&pj)).Info("Creating a new plumberJob - RUN REQUESTED.")
 		if _, err := c.PlumberClient.Create(&pj, c.MetapipelineClient, pr.Repository()); err != nil {
 			c.Logger.WithError(err).Error("Failed to create plumberJob.")
 			errors = append(errors, err)

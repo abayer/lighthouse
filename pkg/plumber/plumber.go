@@ -3,6 +3,7 @@ package plumber
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -30,6 +31,8 @@ func NewPlumber(jxClient jxclient.Interface, namespace string) (Plumber, error) 
 
 // Create creates a pipeline
 func (b *PipelineBuilder) Create(request *PipelineOptions, metapipelineClient metapipeline.Client, repository scm.Repository) (*PipelineOptions, error) {
+	stacktrace := debug.Stack()
+	logrus.Warnf("ENTERING PIPELINE CREATE WITH:\n%s\n", string(stacktrace))
 	spec := &request.Spec
 
 	name := repository.Name
