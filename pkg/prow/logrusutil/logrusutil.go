@@ -54,9 +54,7 @@ func CreateDefaultFormatter() logrus.Formatter {
 		}
 	}
 	jsonFormat := &logrus.JSONFormatter{}
-	if os.Getenv("LOGRUS_JSON_PRETTY") == "true" {
-		jsonFormat.PrettyPrint = true
-	}
+	jsonFormat.PrettyPrint = true
 	return jsonFormat
 }
 
