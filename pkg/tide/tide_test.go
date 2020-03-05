@@ -245,7 +245,7 @@ func TestAccumulateBatch(t *testing.T) {
 			}
 			pjs = append(pjs, npj)
 		}
-		merges, pending := accumulateBatch(test.presubmits, pulls, pjs, logrus.NewEntry(logrus.New()))
+		merges, pending := accumulateBatch(test.presubmits, pulls, pjs, &fgc{}, logrus.NewEntry(logrus.New()))
 		if (len(pending) > 0) != test.pending {
 			t.Errorf("For case \"%s\", got wrong pending.", test.name)
 		}
@@ -467,7 +467,7 @@ func TestAccumulate(t *testing.T) {
 			})
 		}
 
-		successes, pendings, nones, _ := accumulate(test.presubmits, pulls, pjs, logrus.NewEntry(logrus.New()))
+		successes, pendings, nones, _ := accumulate(test.presubmits, pulls, pjs, &fgc{}, logrus.NewEntry(logrus.New()))
 
 		t.Logf("test run %d", i)
 		testPullsMatchList(t, "successes", successes, test.successes)
@@ -2692,7 +2692,7 @@ func TestAccumulateReturnsCorrectMissingTests(t *testing.T) {
 	log := logrus.NewEntry(logrus.New())
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, _, _, missingSerialTests := accumulate(tc.presubmits, tc.prs, tc.pjs, log)
+			_, _, _, missingSerialTests := accumulate(tc.presubmits, tc.prs, tc.pjs, &fgc{}, log)
 			// Apiequality treats nil slices/maps equal to a zero length slice/map, keeping us from
 			// the burden of having to always initialize them
 			if !apiequality.Semantic.DeepEqual(tc.expectedPresubmits, missingSerialTests) {
