@@ -5,7 +5,8 @@ require (
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-openapi/spec v0.19.3
+	github.com/go-openapi/loads v0.19.5 // indirect
+	github.com/go-openapi/spec v0.19.6
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/go-cmp v0.3.1
 	github.com/gophercloud/gophercloud v0.1.0 // indirect
@@ -13,6 +14,7 @@ require (
 	github.com/jenkins-x/go-scm v1.5.80
 	github.com/jenkins-x/jx v0.0.0-20200313121200-6c84c499e762
 	github.com/knative/build v0.7.0
+	github.com/kubernetes-incubator/reference-docs v0.0.0-20190410022412-9642bd3f4de5 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.4
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect

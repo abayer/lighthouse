@@ -14,6 +14,8 @@ GO_LDFLAGS :=  -X $(PROJECT)/pkg/version.Version='$(VERSION)'
 GOTEST := $(GO) test
 
 CLIENTSET_GENERATOR_VERSION := kubernetes-1.12.9
+GEN_APIDOCS_VERSION := 9642bd3f4de5
+OPENAPI_GEN_VERSION := 36ebc4887cdc
 
 all: check test build
 
@@ -90,13 +92,32 @@ production-container:
 push-container: production-container
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME)
 
+
+.PHONY: generate
+generate: generate-client generate-docs generate-openapi
+
 CODEGEN_BIN := $(GOPATH)/bin/codegen
 $(CODEGEN_BIN):
 	$(GO_NOMOD) get github.com/jenkins-x/jx/cmd/codegen
 
+.PHONY: generate-client
 generate-client: codegen-clientset fmt ## Generate the client
 
+.PHONY: codegen-clientset
 codegen-clientset: $(CODEGEN_BIN) ## Generate the k8s types and clients
 	@echo "Generating Kubernetes Clients for pkg/apis/lighthouse/v1alpha1 in pkg/client for lighthouse.jenkins.io:v1alpha1"
 	$(CODEGEN_BIN) --generator-version $(CLIENTSET_GENERATOR_VERSION) clientset --output-package=pkg/client --input-package=pkg/apis --group-with-version=lighthouse:v1alpha1
 
+.PHONY: generate-docs
+# Generated docs are not checked in
+generate-docs: $(CODEGEN_BIN) ## Generate the docs
+	@echo "Generating HTML docs for Kubernetes Clients"
+	$(CODEGEN_BIN) --generator-version $(GEN_APIDOCS_VERSION) docs
+
+.PHONY: generate-openapi
+generate-openapi: codegen-openapi fmt
+
+.PHONY: codegen-openapi
+codegen-openapi: $(CODEGEN_BIN)
+	@echo "Generating OpenAPI structs for Kubernetes Clients"
+	$(CODEGEN_BIN) --generator-version $(OPENAPI_GEN_VERSION) openapi --open-api-dependency="" --output-package=pkg/client --input-package=github.com/jenkins-x/lighthouse/pkg/apis --group-with-version=lighthouse:v1

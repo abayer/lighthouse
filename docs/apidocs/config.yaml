@@ -1,0 +1,18 @@
+example_location: "examples"
+api_groups:
+  - "lighthouse"
+inline_definitions:
+  - name: Spec
+    match: ${resource}Spec
+  - name: Status
+    match: ${resource}Status
+  - name: List
+    match: ${resource}List
+resource_categories:
+  - name: "Lighthouse"
+    include: "lighthouse"
+    resources:
+      - name: LighthouseJob
+        version: v1alpha1
+        group: lighthouse
+        description_warning: ""
