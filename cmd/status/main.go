@@ -16,6 +16,7 @@ import (
 	"github.com/jenkins-x/lighthouse/pkg/prow/logrusutil"
 	"github.com/jenkins-x/lighthouse/pkg/status"
 	"github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 )
 
 type options struct {
@@ -79,6 +80,9 @@ func main() {
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not create kubeconfig")
 	}
+	// TODO: REMOVE
+	cfgy, _ := yaml.Marshal(cfg)
+	logrus.Warnf("KUBE CFG: %s", cfgy)
 
 	jxClient, err := jxclient.NewForConfig(cfg)
 	if err != nil {
