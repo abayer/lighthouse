@@ -16,6 +16,8 @@ import (
 	"github.com/jenkins-x/lighthouse/pkg/prow/logrusutil"
 	"github.com/jenkins-x/lighthouse/pkg/status"
 	"github.com/sirupsen/logrus"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 type options struct {
@@ -79,8 +81,6 @@ func main() {
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not create kubeconfig")
 	}
-	// TODO: REMOVE
-	logrus.Warnf("KUBE CFG: %+v", cfg)
 
 	jxClient, err := jxclient.NewForConfig(cfg)
 	if err != nil {
@@ -90,6 +90,15 @@ func main() {
 	if err != nil {
 		logrus.WithError(err).Fatal("Could not create Lighthouse API client")
 	}
+
+	// TODO: REMOVE
+	jobs, err := lhClient.LighthouseV1alpha1().LighthouseJobs(o.namespace).List(v1.ListOptions{})
+	if err != nil {
+		logrus.WithError(err).Warn("failed to list jobs")
+	}
+	jy, _ := yaml.Marshal(jobs)
+	logrus.Warnf("JOB LIST: %s", jy)
+
 	jxInformerFactory := jxinformers.NewSharedInformerFactoryWithOptions(jxClient, time.Second*30, jxinformers.WithNamespace(o.namespace))
 	lhInformerFactory := lhinformers.NewSharedInformerFactoryWithOptions(lhClient, time.Second*30, lhinformers.WithNamespace(o.namespace))
 
