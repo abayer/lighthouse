@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -123,7 +124,12 @@ func (o *Options) Run() error {
 	mux.Handle(o.Path, http.HandlerFunc(o.handleWebHookRequests))
 
 	logrus.Infof("Lighthouse is now listening on path %s and port %d for WebHooks", o.Path, o.Port)
-	return http.ListenAndServe(":"+strconv.Itoa(o.Port), mux)
+	server := &http.Server{
+		Addr:              ":"+strconv.Itoa(o.Port),
+		Handler:           mux,
+		ErrorLog:          AsHttpLogger(logrus.WithField("foo", "bar")),
+	}
+	return server.ListenAndServe()
 }
 
 // health returns either HTTP 204 if the service is healthy, otherwise nothing ('cos it's dead).
@@ -567,4 +573,19 @@ func responseHTTPError(w http.ResponseWriter, statusCode int, response string) {
 		"status-code": statusCode,
 	}).Info(response)
 	http.Error(w, response, statusCode)
+}
+
+// AsHttpLogger returns the given logrus instance as an HTTP logger.
+func AsHttpLogger(logger *logrus.Entry) *log.Logger {
+	return log.New(&loggerWriter{logger: logger}, "", 0)
+}
+
+// loggerWriter is needed to use a Writer so that you can get a std log.Logger.
+type loggerWriter struct {
+	logger *logrus.Entry
+}
+
+func (w *loggerWriter) Write(p []byte) (n int, err error) {
+	w.logger.Warn(string(p))
+	return len(p), nil
 }
