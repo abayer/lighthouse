@@ -164,6 +164,7 @@ func NewAgent(clientFactory jxfactory.Factory, configAgent *config.Agent, plugin
 	prowConfig := configAgent.Config()
 	pluginConfig := pluginConfigAgent.Config()
 	scmClient := gitprovider.ToClient(clientAgent.SCMProviderClient, clientAgent.BotName)
+	logger.Warnf("writing plugin agent plumberclient %v", clientAgent.PlumberClient)
 	return Agent{
 		ClientFactory:      clientFactory,
 		SCMProviderClient:  scmClient,

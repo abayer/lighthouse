@@ -132,6 +132,7 @@ type trustedUserClient interface {
 }
 
 func getClient(pc plugins.Agent) Client {
+	pc.Logger.Warnf("writing trigger plumberclient %v", pc.PlumberClient)
 	return Client{
 		SCMProviderClient:  pc.SCMProviderClient,
 		Config:             pc.Config,

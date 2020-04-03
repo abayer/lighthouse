@@ -557,6 +557,7 @@ func (o *Options) updatePlumberClientAndReturnError(l *logrus.Entry, server *hoo
 		l.Errorf("%s", err.Error())
 		return err
 	}
+	l.Warnf("writing plumberclient %v", plumberClient)
 	server.ClientAgent.PlumberClient = plumberClient
 	return nil
 }
