@@ -43,7 +43,7 @@ const (
 	baseDirConvention = ""
 )
 
-var defaultDirBlacklist = sets.NewString(".git", "_output")
+var defaultDirBlacklist = sets.NewString(".git", "_output", "test_data")
 
 type dirOptions struct {
 	NoParentOwners bool `json:"no_parent_owners,omitempty"`
@@ -369,7 +369,6 @@ func (o *RepoOwners) walkFunc(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 	filename := filepath.Base(path)
-	log.Warnf("Checking %s to see if it's OWNERS", path)
 	if info.Mode().IsDir() && o.dirBlacklist.Has(filename) {
 		return filepath.SkipDir
 	}
