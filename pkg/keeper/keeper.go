@@ -1525,6 +1525,7 @@ type Context struct {
 	Context     githubql.String
 	Description githubql.String
 	State       githubql.StatusState
+	CreatedAt   githubql.DateTime
 }
 
 // PRNode a node containing a PR
@@ -1555,6 +1556,27 @@ func (pr *PullRequest) logFields() logrus.Fields {
 	}
 }
 
+// mostRecentStatusesForContexts gets the most recent status only for each context
+func mostRecentStatusesForContexts(contexts []Context) []Context {
+	newestCtxs := make(map[string]Context)
+
+	for _, c := range contexts {
+		current, ok := newestCtxs[string(c.Context)]
+		if !ok {
+			newestCtxs[string(c.Context)] = c
+		}  else if current.CreatedAt.Time.Before(c.CreatedAt.Time) {
+			newestCtxs[string(c.Context)] = c
+		}
+	}
+
+	var ctxs []Context
+	for _, v := range newestCtxs {
+		ctxs = append(ctxs, v)
+	}
+
+	return ctxs
+}
+
 // headContexts gets the status contexts for the commit with OID == pr.HeadRefOID
 //
 // First, we try to get this value from the commits we got with the PR query.
@@ -1567,7 +1589,7 @@ func (pr *PullRequest) logFields() logrus.Fields {
 func headContexts(log *logrus.Entry, spc scmProviderClient, pr *PullRequest) ([]Context, error) {
 	for _, node := range pr.Commits.Nodes {
 		if node.Commit.OID == pr.HeadRefOID {
-			return node.Commit.Status.Contexts, nil
+			return mostRecentStatusesForContexts(node.Commit.Status.Contexts), nil
 		}
 	}
 	// We didn't get the head commit from the query (the commits must not be
@@ -1601,7 +1623,7 @@ func headContexts(log *logrus.Entry, spc scmProviderClient, pr *PullRequest) ([]
 			},
 		},
 	)
-	return contexts, nil
+	return mostRecentStatusesForContexts(contexts), nil
 }
 
 func orgRepoQueryString(orgs, repos []string, orgExceptions map[string]sets.String) string {
