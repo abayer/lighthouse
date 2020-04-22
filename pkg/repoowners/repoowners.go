@@ -369,7 +369,7 @@ func (o *RepoOwners) walkFunc(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 	filename := filepath.Base(path)
-
+	log.Warnf("Checking %s to see if it's OWNERS", path)
 	if info.Mode().IsDir() && o.dirBlacklist.Has(filename) {
 		return filepath.SkipDir
 	}
@@ -401,7 +401,7 @@ func (o *RepoOwners) walkFunc(path string, info os.FileInfo, err error) error {
 	if filename != ownersFileName {
 		return nil
 	}
-
+	log.Warnf("We seem to think %s is OWNERS", path)
 	b, err := ioutil.ReadFile(path) // #nosec
 	if err != nil {
 		log.WithError(err).Errorf("Failed to read the OWNERS file.")
