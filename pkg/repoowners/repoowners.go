@@ -244,6 +244,15 @@ func (c *Client) LoadRepoOwners(org, repo, base string) (RepoOwner, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to load RepoOwners for %s: %v", fullName, err)
 		}
+		for k, v := range entry.owners.approvers {
+			for k1, v1 := range v {
+				reStr := "nil"
+				if k1 != nil {
+					reStr = k1.String()
+				}
+				log.Warnf("approver %s : %s : %s", k, reStr, strings.Join(v1.List(), ", "))
+			}
+		}
 		entry.sha = sha
 		c.cache[fullName] = entry
 	}
@@ -414,8 +423,10 @@ func (o *RepoOwners) walkFunc(path string, info os.FileInfo, err error) error {
 	}
 	relPathDir := canonicalize(filepath.Dir(relPath))
 
+	log.Warnf("b is %s", string(b))
 	simple, err := ParseSimpleConfig(b)
 	if err != nil || simple.Empty() {
+		log.Warnf("simple is empty")
 		c, err := ParseFullConfig(b)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to unmarshal %s into either Simple or FullConfig.", path)
@@ -434,6 +445,8 @@ func (o *RepoOwners) walkFunc(path string, info os.FileInfo, err error) error {
 			o.applyOptionsToPath(relPathDir, c.Options)
 		}
 	} else {
+		sc, _ := yaml.Marshal(simple)
+		log.Warnf("simple starts as %s", string(sc))
 		// it's a SimpleConfig
 		o.applyConfigToPath(relPathDir, nil, &simple.Config)
 		o.applyOptionsToPath(relPathDir, simple.Options)
@@ -489,6 +502,7 @@ func (o *RepoOwners) applyConfigToPath(path string, re *regexp.Regexp, config *C
 		if o.approvers[path] == nil {
 			o.approvers[path] = make(map[*regexp.Regexp]sets.String)
 		}
+		o.log.Warnf("adding approvers %s for some regexp", strings.Join(config.Approvers, ", "))
 		o.approvers[path][re] = o.ExpandAliases(normLogins(config.Approvers))
 	}
 	if len(config.Reviewers) > 0 {
