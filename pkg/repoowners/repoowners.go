@@ -263,15 +263,17 @@ func (c *Client) LoadRepoOwners(org, repo, base string) (RepoOwner, error) {
 	}
 
 	var owners *RepoOwners
+	owners = entry.owners
+	// TODO: Fix whatever the heck is wrong with collaborator checks. (apb)
 	// Filter collaborators. We must filter the RepoOwners struct even if it came from the cache
 	// because the list of collaborators could have changed without the git Sha changing.
-	collaborators, err := c.spc.ListCollaborators(org, repo)
+/*	collaborators, err := c.spc.ListCollaborators(org, repo)
 	if err != nil {
 		log.WithError(err).Errorf("Failed to list collaborators while loading RepoOwners. Skipping collaborator filtering.")
 		owners = entry.owners
 	} else {
 		owners = entry.owners.filterCollaborators(collaborators)
-	}
+	}*/
 	for k, v := range owners.approvers {
 		for k1, v1 := range v {
 			reStr := "nil"
