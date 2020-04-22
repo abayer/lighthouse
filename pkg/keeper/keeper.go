@@ -625,6 +625,7 @@ func unsuccessfulContexts(contexts []Context, cc contextChecker, log *logrus.Ent
 			continue
 		}
 		if ctx.State != githubql.StatusStateSuccess {
+			log.Warnf("Nonsuccess: %s, %s", string(ctx.Context), string(ctx.State))
 			failed = append(failed, ctx)
 		}
 	}
