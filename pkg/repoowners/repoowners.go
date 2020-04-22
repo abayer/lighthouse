@@ -502,7 +502,7 @@ func (o *RepoOwners) applyConfigToPath(path string, re *regexp.Regexp, config *C
 		if o.approvers[path] == nil {
 			o.approvers[path] = make(map[*regexp.Regexp]sets.String)
 		}
-		o.log.Warnf("adding approvers %s for some regexp", strings.Join(config.Approvers, ", "))
+		o.log.Warnf("adding approvers %s for path %s", strings.Join(config.Approvers, ", "), path)
 		o.approvers[path][re] = o.ExpandAliases(normLogins(config.Approvers))
 	}
 	if len(config.Reviewers) > 0 {
@@ -542,6 +542,8 @@ func (o *RepoOwners) filterCollaborators(toKeep []scm.User) *RepoOwners {
 		for path, reMap := range ownerMap {
 			filtered[path] = make(map[*regexp.Regexp]sets.String)
 			for re, unfiltered := range reMap {
+				o.log.Warnf("unfiltered: %s", strings.Join(unfiltered.List(), "\n"))
+				o.log.Warnf("collabs: %s", strings.Join(collabs.List(), "\n"))
 				filtered[path][re] = unfiltered.Intersection(collabs)
 			}
 		}
