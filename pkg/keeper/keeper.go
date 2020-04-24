@@ -66,6 +66,10 @@ type scmProviderClient interface {
 	GetRef(string, string, string) (string, error)
 	Merge(string, string, int, scmprovider.MergeDetails) error
 	Query(context.Context, interface{}, map[string]interface{}) error
+	SupportsGraphQL() bool
+	ProviderType() string
+	GetRepositoryByFullName(string) (*scm.Repository, error)
+	ListAllPullRequestsForFullNameRepo(string, scm.PullRequestListOptions) ([]*scm.PullRequest, error)
 }
 
 type contextChecker interface {
@@ -304,15 +308,29 @@ func (c *DefaultController) Sync() error {
 
 	c.logger.Debug("Building keeper pool.")
 	prs := make(map[string]PullRequest)
-	for _, query := range c.config().Keeper.Queries {
-		q := query.Query()
-		results, err := search(c.spc.Query, c.logger, q, time.Time{}, time.Now())
-		if err != nil && len(results) == 0 {
-			return fmt.Errorf("query %q, err: %v", q, err)
+	if c.spc.SupportsGraphQL() {
+		for _, query := range c.config().Keeper.Queries {
+			q := query.Query()
+			results, err := graphQLSearch(c.spc.Query, c.logger, q, time.Time{}, time.Now())
+			if err != nil && len(results) == 0 {
+				return fmt.Errorf("query %q, err: %v", q, err)
+			}
+			if err != nil {
+				c.logger.WithError(err).WithField("query", q).Warning("found partial results")
+			}
+
+			for _, pr := range results {
+				p := pr
+				prs[prKey(&p)] = pr
+			}
 		}
+	} else {
+		results, err := restAPISearch(c.spc, c.logger, c.config().Keeper.Queries, time.Time{}, time.Now())
 		if err != nil {
-			c.logger.WithError(err).WithField("query", q).Warning("found partial results")
+			c.logger.WithError(err).Warnf("failed to perform REST query for PRs")
+			return errors.Wrapf(err, "failed to perform REST query for PRs")
 		}
+
 		for _, pr := range results {
 			p := pr
 			prs[prKey(&p)] = pr
@@ -335,17 +353,20 @@ func (c *DefaultController) Sync() error {
 		c.logger.WithField("duration", time.Since(start).String()).Debug("Listed LighthouseJobs from the cluster.")
 		lhjs = lhjList.Items
 
-		if label := c.config().Keeper.BlockerLabel; label != "" {
-			c.logger.Debugf("Searching for blocking issues (label %q).", label)
-			orgExcepts, repos := c.config().Keeper.Queries.OrgExceptionsAndRepos()
-			orgs := make([]string, 0, len(orgExcepts))
-			for org := range orgExcepts {
-				orgs = append(orgs, org)
-			}
-			orgRepoQuery := orgRepoQueryString(orgs, repos.UnsortedList(), orgExcepts)
-			blocks, err = blockers.FindAll(c.spc, c.logger, label, orgRepoQuery)
-			if err != nil {
-				return err
+		// TODO: Support blockers with non-graphql
+		if c.spc.SupportsGraphQL() {
+			if label := c.config().Keeper.BlockerLabel; label != "" {
+				c.logger.Debugf("Searching for blocking issues (label %q).", label)
+				orgExcepts, repos := c.config().Keeper.Queries.OrgExceptionsAndRepos()
+				orgs := make([]string, 0, len(orgExcepts))
+				for org := range orgExcepts {
+					orgs = append(orgs, org)
+				}
+				orgRepoQuery := orgRepoQueryString(orgs, repos.UnsortedList(), orgExcepts)
+				blocks, err = blockers.FindAll(c.spc, c.logger, label, orgRepoQuery)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -1426,15 +1447,8 @@ type PullRequest struct {
 	HeadRefName githubql.String `graphql:"headRefName"`
 	HeadRefOID  githubql.String `graphql:"headRefOid"`
 	Mergeable   githubql.MergeableState
-	Repository  struct {
-		Name          githubql.String
-		NameWithOwner githubql.String
-		URL           githubql.String
-		Owner         struct {
-			Login githubql.String
-		}
-	}
-	Commits struct {
+	Repository  Repository
+	Commits     struct {
 		Nodes []struct {
 			Commit Commit
 		}
@@ -1455,6 +1469,19 @@ type PullRequest struct {
 	Body      githubql.String
 	Title     githubql.String
 	UpdatedAt githubql.DateTime
+}
+
+// Repository holds graphql/query data about repositories
+type Repository struct {
+	Name          githubql.String
+	NameWithOwner githubql.String
+	URL           githubql.String
+	Owner         SCMUser
+}
+
+// SCMUser holds the username
+type SCMUser struct {
+	Login githubql.String
 }
 
 // Commit holds graphql data about commits and which contexts they have
@@ -1488,7 +1515,7 @@ type searchQuery struct {
 			EndCursor   githubql.String
 		}
 		Nodes []PRNode
-	} `graphql:"search(type: ISSUE, first: 100, after: $searchCursor, query: $query)"`
+	} `graphql:"graphQLSearch(type: ISSUE, first: 100, after: $searchCursor, query: $query)"`
 }
 
 func (pr *PullRequest) logFields() logrus.Fields {
@@ -1562,4 +1589,177 @@ func orgRepoQueryString(orgs, repos []string, orgExceptions map[string]sets.Stri
 		toks = append(toks, fmt.Sprintf("repo:\"%s\"", r))
 	}
 	return strings.Join(toks, " ")
+}
+
+func restAPISearch(spc scmProviderClient, log *logrus.Entry, queries config.KeeperQueries, start, end time.Time) ([]PullRequest, error) {
+	reposToQueries := make(map[string][]*config.KeeperQuery)
+
+	// Create a map of each repo to the relevant queries
+	for _, q := range queries {
+		queryCopy := q
+		for _, repo := range q.Repos {
+			reposToQueries[repo] = append(reposToQueries[repo], &queryCopy)
+		}
+	}
+
+	var relevantPRs []PullRequest
+
+	// Iterate over the repo list and query them
+	for repo := range reposToQueries {
+		searchOpts := scm.PullRequestListOptions{
+			Page:   1,
+			Size:   100,
+			Open:   true,
+			Closed: false,
+		}
+		if !start.Equal(time.Time{}) {
+			searchOpts.UpdatedAfter = &start
+		}
+		if !end.Equal(time.Time{}) {
+			searchOpts.UpdatedBefore = &end
+		}
+
+		prs, err := spc.ListAllPullRequestsForFullNameRepo(repo, searchOpts)
+		if err != nil {
+			return nil, errors.Wrapf(err, "listing all open pull requests for %s", repo)
+		}
+
+		var repoData *scm.Repository
+
+		// Iterate over the PRs to see if they match the relevant queries
+		for _, pr := range prs {
+			prLabels := make(map[string]struct{})
+			for _, l := range pr.Labels {
+				prLabels[l.Name] = struct{}{}
+			}
+			matches := false
+
+			for _, q := range reposToQueries[repo] {
+				missingRequiredLabels := false
+				for _, requiredLabel := range q.Labels {
+					if _, ok := prLabels[requiredLabel]; !ok {
+						// Required label not present, break
+						missingRequiredLabels = true
+						break
+					}
+				}
+				if missingRequiredLabels {
+					break
+				}
+
+				hasExcludedLabel := false
+				// Check if any of the excluded labels are present
+				for _, excludedLabel := range q.MissingLabels {
+					if _, ok := prLabels[excludedLabel]; ok {
+						// Excluded label present, break
+						hasExcludedLabel = true
+						break
+					}
+				}
+				if hasExcludedLabel {
+					break
+				}
+
+				hasExcludedBranch := false
+				if len(q.ExcludedBranches) > 0 {
+					for _, eb := range q.ExcludedBranches {
+						if pr.Target == eb {
+							hasExcludedBranch = true
+							break
+						}
+					}
+				}
+				if hasExcludedBranch {
+					break
+				}
+
+				if len(q.IncludedBranches) > 0 {
+					missingIncludedBranch := true
+					for _, ib := range q.IncludedBranches {
+						if pr.Target == ib {
+							missingIncludedBranch = false
+							break
+						}
+					}
+					if missingIncludedBranch {
+						break
+					}
+				}
+
+				// If we haven't failed to meet any of the criteria, this is a match
+				matches = true
+			}
+
+			if matches {
+				// If this PR matches, get the repository details
+				if repoData == nil {
+					scmRepo, err := spc.GetRepositoryByFullName(repo)
+					if err != nil {
+						return nil, errors.Wrapf(err, "getting repository details for %s", repo)
+					}
+					repoData = scmRepo
+				}
+
+				relevantPRs = append(relevantPRs, scmPRToGraphQLPR(pr, repoData))
+			}
+		}
+	}
+
+	return relevantPRs, nil
+}
+
+func scmPRToGraphQLPR(scmPR *scm.PullRequest, scmRepo *scm.Repository) PullRequest {
+	author := struct {
+		Login githubql.String
+	}{
+		Login: githubql.String(scmPR.Author.Login),
+	}
+
+	baseRef := struct {
+		Name   githubql.String
+		Prefix githubql.String
+	}{
+		Name:   githubql.String(scmPR.Target),
+		Prefix: githubql.String(strings.TrimSuffix(scmPR.Base.Ref, scmPR.Target)),
+	}
+
+	mergeable := githubql.MergeableStateUnknown
+	switch scmPR.MergeableState {
+	case scm.MergeableStateMergeable:
+		mergeable = githubql.MergeableStateMergeable
+	case scm.MergeableStateConflicting:
+		mergeable = githubql.MergeableStateConflicting
+	}
+
+	labels := struct {
+		Nodes []struct {
+			Name githubql.String
+		}
+	}{}
+	for _, l := range scmPR.Labels {
+		labels.Nodes = append(labels.Nodes, struct{ Name githubql.String }{Name: githubql.String(l.Name)})
+	}
+
+	return PullRequest{
+		Number:      githubql.Int(scmPR.Number),
+		Author:      author,
+		BaseRef:     baseRef,
+		HeadRefName: githubql.String(scmPR.Source),
+		HeadRefOID:  githubql.String(scmPR.Head.Sha),
+		Mergeable:   mergeable,
+		Repository:  scmRepoToGraphQLRepo(scmRepo),
+		Labels:      labels,
+		Body:        githubql.String(scmPR.Body),
+		Title:       githubql.String(scmPR.Title),
+		UpdatedAt:   githubql.DateTime{Time: scmPR.Updated},
+	}
+}
+
+func scmRepoToGraphQLRepo(scmRepo *scm.Repository) Repository {
+	return Repository{
+		Name:          githubql.String(scmRepo.Name),
+		NameWithOwner: githubql.String(scmRepo.FullName),
+		URL:           githubql.String(scmRepo.Link),
+		Owner:         SCMUser{Login: githubql.String(scmRepo.Namespace)},
+	}
 }

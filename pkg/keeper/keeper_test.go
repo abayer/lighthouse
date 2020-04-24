@@ -513,6 +513,22 @@ func toCommitStatus(s string, d string) commitStatus {
 	}
 }
 
+func (f *fgc) SupportsGraphQL() bool {
+	return true
+}
+
+func (f *fgc) ProviderType() string {
+	return "fake"
+}
+
+func (f *fgc) GetRepositoryByFullName(string) (*scm.Repository, error) {
+	return nil, scm.ErrNotSupported
+}
+
+func (f *fgc) ListAllPullRequestsForFullNameRepo(string, scm.PullRequestListOptions) ([]*scm.PullRequest, error) {
+	return nil, scm.ErrNotSupported
+}
+
 func (f *fgc) GetRef(o, r, ref string) (string, error) {
 	return f.refs[o+"/"+r+" "+ref], nil
 }

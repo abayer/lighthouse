@@ -439,7 +439,19 @@ func (sc *statusController) search() []PullRequest {
 		sc.PreviousQuery = query
 	}
 
-	prs, err := search(sc.spc.Query, sc.logger, query, sc.LatestPR.Time, now)
+	var prs []PullRequest
+	var err error
+
+	if sc.spc.SupportsGraphQL() {
+		prs, err = graphQLSearch(sc.spc.Query, sc.logger, query, sc.LatestPR.Time, now)
+	} else {
+		kq := config.KeeperQuery{}
+		for _, r := range repos.List() {
+			kq.Repos = append(kq.Repos, r)
+		}
+
+		prs, err = restAPISearch(sc.spc, sc.logger, config.KeeperQueries{kq}, sc.LatestPR.Time, now)
+	}
 	log.WithField("duration", time.Since(now).String()).Debugf("Found %d open PRs.", len(prs))
 	if err != nil {
 		log := log.WithError(err)

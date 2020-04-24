@@ -437,14 +437,9 @@ func TestTargetUrl(t *testing.T) {
 				Author: struct {
 					Login githubql.String
 				}{Login: githubql.String("author")},
-				Repository: struct {
-					Name          githubql.String
-					NameWithOwner githubql.String
-					URL           githubql.String
-					Owner         struct {
-						Login githubql.String
-					}
-				}{NameWithOwner: githubql.String("org/repo")},
+				Repository: Repository{
+					NameWithOwner: githubql.String("org/repo"),
+				},
 				HeadRefName: "head",
 			},
 			config:      config.Keeper{PRStatusBaseURL: "pr.status.com"},

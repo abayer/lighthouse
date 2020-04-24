@@ -22,6 +22,24 @@ func (c *Client) GetPullRequest(owner, repo string, number int) (*scm.PullReques
 	return pr, err
 }
 
+// ListAllPullRequestsForFullNameRepo lists all pull requests in a full-name repository
+func (c *Client) ListAllPullRequestsForFullNameRepo(fullName string, opts scm.PullRequestListOptions) ([]*scm.PullRequest, error) {
+	ctx := context.Background()
+	var allPRs []*scm.PullRequest
+	var resp *scm.Response
+	var pagePRs []*scm.PullRequest
+	var err error
+	for resp == nil || opts.Page <= resp.Page.Last {
+		pagePRs, resp, err = c.client.PullRequests.List(ctx, fullName, opts)
+		if err != nil {
+			return nil, err
+		}
+		allPRs = append(allPRs, pagePRs...)
+		opts.Page++
+	}
+	return allPRs, nil
+}
+
 // ListPullRequestComments list pull request comments
 func (c *Client) ListPullRequestComments(owner, repo string, number int) ([]*scm.Comment, error) {
 	ctx := context.Background()
