@@ -75,6 +75,7 @@ type scmProviderClient interface {
 	AddLabel(org, repo string, number int, label string, pr bool) error
 	RemoveLabel(org, repo string, number int, label string, pr bool) error
 	ListIssueEvents(org, repo string, num int) ([]*scm.ListedIssueEvent, error)
+	ProviderType() string
 }
 
 type ownersClient interface {
@@ -375,16 +376,20 @@ func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, githu
 	if err != nil {
 		return fetchErr("bot name", err)
 	}
-	issueComments, err := spc.ListIssueComments(pr.org, pr.repo, pr.number)
-	if err != nil {
-		return fetchErr("issue comments", err)
+	var issueComments []*scm.Comment
+	// Get issue comments _only_ if this is GitHub. Otherwise just get PR comments.
+	if spc.ProviderType() == "github" {
+		issueComments, err = spc.ListIssueComments(pr.org, pr.repo, pr.number)
+		if err != nil {
+			return fetchErr("issue comments", err)
+		}
 	}
 	reviewComments, err := spc.ListPullRequestComments(pr.org, pr.repo, pr.number)
 	if err != nil {
 		return fetchErr("review comments", err)
 	}
 	reviews, err := spc.ListReviews(pr.org, pr.repo, pr.number)
-	if err != nil {
+	if err != nil && err.Error() != scm.ErrNotSupported.Error() {
 		return fetchErr("reviews", err)
 	}
 
