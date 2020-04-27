@@ -27,6 +27,7 @@ import (
 
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/lighthouse/pkg/scmprovider"
+	"github.com/jenkins-x/lighthouse/pkg/util"
 	"github.com/sirupsen/logrus"
 
 	"github.com/jenkins-x/lighthouse/pkg/config"
@@ -138,7 +139,7 @@ func helpProvider(config *plugins.Configuration, enabledRepos []string) (*plugin
 		Description: "Approves a pull request",
 		Featured:    true,
 		WhoCanUse:   "Users listed as 'approvers' in appropriate OWNERS files.",
-		Examples:    []string{"/approve", "/approve no-issue"},
+		Examples:    []string{"/approve", "/approve no-issue", "/lh-approve"},
 	})
 	return pluginHelp, nil
 }
@@ -499,6 +500,9 @@ func isApprovalCommand(botName string, lgtmActsAsApprove bool, c *comment) bool 
 
 	for _, match := range commandRegex.FindAllStringSubmatch(c.Body, -1) {
 		cmd := strings.ToUpper(match[1])
+		if strings.HasPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix)) {
+			cmd = strings.TrimPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix))
+		}
 		if (cmd == lgtmCommand && lgtmActsAsApprove) || cmd == approveCommand {
 			return true
 		}
