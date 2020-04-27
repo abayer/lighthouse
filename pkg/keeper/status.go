@@ -322,6 +322,8 @@ func (sc *statusController) setStatuses(all []PullRequest, pool map[string]PullR
 			}
 		}
 		if wantState != strings.ToLower(string(actualState)) || wantDesc != actualDesc {
+			log.Warnf("wantState: %s, actualState: %s", wantState, strings.ToLower(string(actualState)))
+			log.Warnf("wantDesc: %s, actualDesc: %s", wantDesc, actualDesc)
 			if _, err := sc.spc.CreateGraphQLStatus(
 				string(pr.Repository.Owner.Login),
 				string(pr.Repository.Name),
