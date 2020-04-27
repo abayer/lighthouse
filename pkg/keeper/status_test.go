@@ -274,7 +274,7 @@ func TestExpectedStatus(t *testing.T) {
 		}
 		blocks.Repo[blockers.OrgRepo{Org: "", Repo: ""}] = items
 
-		state, desc := expectedStatus(queriesByRepo, &pr, pool, &config.KeeperContextPolicy{}, blocks)
+		state, desc := expectedStatus(queriesByRepo, &pr, pool, &config.KeeperContextPolicy{}, blocks, "fake")
 		if state != tc.state {
 			t.Errorf("Expected status state %q, but got %q.", string(tc.state), string(state))
 		}

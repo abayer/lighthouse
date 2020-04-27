@@ -567,6 +567,8 @@ func toScmStatusDescriptionRunningStages(activity *jxv1.PipelineActivity, gitKin
 	}
 	stagesByStatus := activity.StagesByStatus()
 
+	// GitLab does not currently support updating description without changing state, so we need simple descriptions there.
+	// TODO: link to GitLab issue (apb)
 	if len(stagesByStatus[jxv1.ActivityStatusTypeRunning]) > 0 && gitKind != "gitlab" {
 		info.runningStages = strings.Join(stagesByStatus[jxv1.ActivityStatusTypeRunning], ",")
 		info.description = fmt.Sprintf("Pipeline running stage(s): %s", strings.Join(stagesByStatus[jxv1.ActivityStatusTypeRunning], ", "))
