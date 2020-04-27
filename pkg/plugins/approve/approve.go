@@ -30,7 +30,6 @@ import (
 	"github.com/jenkins-x/lighthouse/pkg/util"
 	"github.com/sirupsen/logrus"
 
-	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/jenkins-x/lighthouse/pkg/labels"
 	"github.com/jenkins-x/lighthouse/pkg/pluginhelp"
 	"github.com/jenkins-x/lighthouse/pkg/plugins"
@@ -150,13 +149,13 @@ func handleGenericCommentEvent(pc plugins.Agent, ce scmprovider.GenericCommentEv
 		pc.Logger,
 		pc.SCMProviderClient,
 		pc.OwnersClient,
-		pc.Config.GitHubOptions,
+		pc.ServerURL,
 		pc.PluginConfig,
 		&ce,
 	)
 }
 
-func handleGenericComment(log *logrus.Entry, spc scmProviderClient, oc ownersClient, githubConfig config.GitHubOptions, config *plugins.Configuration, ce *scmprovider.GenericCommentEvent) error {
+func handleGenericComment(log *logrus.Entry, spc scmProviderClient, oc ownersClient, serverURL *url.URL, config *plugins.Configuration, ce *scmprovider.GenericCommentEvent) error {
 	if ce.Action != scm.ActionCreate || !ce.IsPR || ce.IssueState == "closed" {
 		return nil
 	}
@@ -185,7 +184,7 @@ func handleGenericComment(log *logrus.Entry, spc scmProviderClient, oc ownersCli
 		log,
 		spc,
 		repo,
-		githubConfig,
+		serverURL,
 		opts,
 		&state{
 			org:       ce.Repo.Namespace,
@@ -207,13 +206,13 @@ func handleReviewEvent(pc plugins.Agent, re scm.ReviewHook) error {
 		pc.Logger,
 		pc.SCMProviderClient,
 		pc.OwnersClient,
-		pc.Config.GitHubOptions,
+		pc.ServerURL,
 		pc.PluginConfig,
 		&re,
 	)
 }
 
-func handleReview(log *logrus.Entry, spc scmProviderClient, oc ownersClient, githubConfig config.GitHubOptions, config *plugins.Configuration, re *scm.ReviewHook) error {
+func handleReview(log *logrus.Entry, spc scmProviderClient, oc ownersClient, serverURL *url.URL, config *plugins.Configuration, re *scm.ReviewHook) error {
 	if re.Action != scm.ActionSubmitted && re.Action != scm.ActionDismissed {
 		return nil
 	}
@@ -247,7 +246,7 @@ func handleReview(log *logrus.Entry, spc scmProviderClient, oc ownersClient, git
 		log,
 		spc,
 		repo,
-		githubConfig,
+		serverURL,
 		optionsForRepo(config, re.Repo.Namespace, re.Repo.Name),
 		&state{
 			org:       re.Repo.Namespace,
@@ -268,13 +267,13 @@ func handlePullRequestEvent(pc plugins.Agent, pre scm.PullRequestHook) error {
 		pc.Logger,
 		pc.SCMProviderClient,
 		pc.OwnersClient,
-		pc.Config.GitHubOptions,
+		pc.ServerURL,
 		pc.PluginConfig,
 		&pre,
 	)
 }
 
-func handlePullRequest(log *logrus.Entry, spc scmProviderClient, oc ownersClient, githubConfig config.GitHubOptions, config *plugins.Configuration, pre *scm.PullRequestHook) error {
+func handlePullRequest(log *logrus.Entry, spc scmProviderClient, oc ownersClient, serverURL *url.URL, config *plugins.Configuration, pre *scm.PullRequestHook) error {
 	if pre.Action != scm.ActionOpen &&
 		pre.Action != scm.ActionReopen &&
 		pre.Action != scm.ActionSync &&
@@ -300,7 +299,7 @@ func handlePullRequest(log *logrus.Entry, spc scmProviderClient, oc ownersClient
 		log,
 		spc,
 		repo,
-		githubConfig,
+		serverURL,
 		optionsForRepo(config, pre.Repo.Namespace, pre.Repo.Name),
 		&state{
 			org:       pre.Repo.Namespace,
@@ -348,7 +347,7 @@ func findAssociatedIssue(body, org string) (int, error) {
 // - Iff all files have been approved, the bot will add the "approved" label.
 // - Iff a cancel command is found, that reviewer will be removed from the approverSet
 // 	and the munger will remove the approved label if it has been applied
-func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, githubConfig config.GitHubOptions, opts *plugins.Approve, pr *state) error {
+func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serverURL *url.URL, opts *plugins.Approve, pr *state) error {
 	fetchErr := func(context string, err error) error {
 		return fmt.Errorf("failed to get %s for %s/%s#%d: %v", context, pr.org, pr.repo, pr.number, err)
 	}
@@ -431,7 +430,7 @@ func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, githu
 
 	notifications := filterComments(comments, notificationMatcher(botName))
 	latestNotification := getLast(notifications)
-	newMessage := updateNotification(githubConfig.LinkURL, pr.org, pr.repo, pr.branch, latestNotification, approversHandler)
+	newMessage := updateNotification(serverURL, pr.org, pr.repo, pr.branch, latestNotification, approversHandler)
 	if newMessage != nil {
 		for _, notif := range notifications {
 			if err := spc.DeleteComment(pr.org, pr.repo, pr.number, notif.ID, true); err != nil {

@@ -32,7 +32,6 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/jenkins-x/lighthouse/pkg/config"
 	"github.com/jenkins-x/lighthouse/pkg/labels"
 	"github.com/jenkins-x/lighthouse/pkg/plugins"
 	"github.com/jenkins-x/lighthouse/pkg/plugins/approve/approvers"
@@ -1093,9 +1092,7 @@ Approvers can cancel approval by writing ` + "`/approve cancel`" + ` in a commen
 				logrus.WithField("plugin", "approve"),
 				fakeClient,
 				fr,
-				config.GitHubOptions{
-					LinkURL: test.githubLinkURL,
-				},
+				test.githubLinkURL,
 				&plugins.Approve{
 					Repos:               []string{"org/repo"},
 					RequireSelfApproval: &rsa,
@@ -1370,7 +1367,7 @@ func TestHandleGenericComment(t *testing.T) {
 
 	var handled bool
 	var gotState *state
-	handleFunc = func(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, githubConfig config.GitHubOptions, opts *plugins.Approve, pr *state) error {
+	handleFunc = func(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serverURL *url.URL, opts *plugins.Approve, pr *state) error {
 		gotState = pr
 		handled = true
 		return nil
@@ -1396,12 +1393,6 @@ func TestHandleGenericComment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			test.commentEvent.Repo = repo
-			githubConfig := config.GitHubOptions{
-				LinkURL: &url.URL{
-					Scheme: "https",
-					Host:   "github.com",
-				},
-			}
 			config := &plugins.Configuration{}
 			config.Approve = append(config.Approve, plugins.Approve{
 				Repos:             []string{test.commentEvent.Repo.Namespace},
@@ -1411,7 +1402,10 @@ func TestHandleGenericComment(t *testing.T) {
 				logrus.WithField("plugin", "approve"),
 				fakeClient,
 				fakeOwnersClient{},
-				githubConfig,
+				&url.URL{
+					Scheme: "https",
+					Host:   "github.com",
+				},
 				config,
 				&test.commentEvent,
 			)
@@ -1585,7 +1579,7 @@ func TestHandleReview(t *testing.T) {
 
 	var handled bool
 	var gotState *state
-	handleFunc = func(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, config config.GitHubOptions, opts *plugins.Approve, pr *state) error {
+	handleFunc = func(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serverURL *url.URL, opts *plugins.Approve, pr *state) error {
 		gotState = pr
 		handled = true
 		return nil
@@ -1615,12 +1609,6 @@ func TestHandleReview(t *testing.T) {
 	for _, test := range tests {
 		test.reviewEvent.Repo = repo
 		test.reviewEvent.PullRequest = pr
-		githubConfig := config.GitHubOptions{
-			LinkURL: &url.URL{
-				Scheme: "https",
-				Host:   "github.com",
-			},
-		}
 		config := &plugins.Configuration{}
 		irs := !test.reviewActsAsApprove
 		config.Approve = append(config.Approve, plugins.Approve{
@@ -1632,7 +1620,10 @@ func TestHandleReview(t *testing.T) {
 			logrus.WithField("plugin", "approve"),
 			fakeClient,
 			fakeOwnersClient{},
-			githubConfig,
+			&url.URL{
+				Scheme: "https",
+				Host:   "github.com",
+			},
 			config,
 			&test.reviewEvent,
 		)
@@ -1748,7 +1739,7 @@ func TestHandlePullRequest(t *testing.T) {
 
 	var handled bool
 	var gotState *state
-	handleFunc = func(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, githubConfig config.GitHubOptions, opts *plugins.Approve, pr *state) error {
+	handleFunc = func(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serverURL *url.URL, opts *plugins.Approve, pr *state) error {
 		gotState = pr
 		handled = true
 		return nil
@@ -1770,11 +1761,9 @@ func TestHandlePullRequest(t *testing.T) {
 			logrus.WithField("plugin", "approve"),
 			fakeClient,
 			fakeOwnersClient{},
-			config.GitHubOptions{
-				LinkURL: &url.URL{
-					Scheme: "https",
-					Host:   "github.com",
-				},
+			&url.URL{
+				Scheme: "https",
+				Host:   "github.com",
 			},
 			&plugins.Configuration{},
 			&test.prEvent,
