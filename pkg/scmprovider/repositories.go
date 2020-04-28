@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jenkins-x/go-scm/scm"
+	"github.com/sirupsen/logrus"
 )
 
 // GetRepositoryByFullName returns the repository details
@@ -76,6 +77,7 @@ func (c *Client) ListStatuses(owner, repo, ref string) ([]*scm.Status, error) {
 func (c *Client) GetCombinedStatus(owner, repo, ref string) (*scm.CombinedStatus, error) {
 	ctx := context.Background()
 	fullName := c.repositoryName(owner, repo)
+	logrus.Warn("PROJ NOT F: fullName: %s", fullName)
 	resources, _, err := c.client.Repositories.FindCombinedStatus(ctx, fullName, ref)
 	return resources, err
 }
