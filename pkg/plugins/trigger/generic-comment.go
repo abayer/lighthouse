@@ -153,6 +153,7 @@ func FilterPresubmits(honorOkToTest bool, scmClient SCMProviderClient, body stri
 	contextGetter := func() (sets.String, sets.String, error) {
 		combinedStatus, err := scmClient.GetCombinedStatus(org, repo, sha)
 		if err != nil {
+			logger.Warnf("PROJ NOT F: combined status err: %s", err)
 			return nil, nil, err
 		}
 		failedContexts, allContexts := getContexts(combinedStatus)
