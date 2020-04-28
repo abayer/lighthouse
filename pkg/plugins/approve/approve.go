@@ -383,14 +383,17 @@ func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serve
 			return fetchErr("issue comments", err)
 		}
 	}
+	log.Warnf("APPROVING: got past issue comments")
 	reviewComments, err := spc.ListPullRequestComments(pr.org, pr.repo, pr.number)
 	if err != nil {
 		return fetchErr("review comments", err)
 	}
+	log.Warnf("APPROVING: got past PR comments")
 	reviews, err := spc.ListReviews(pr.org, pr.repo, pr.number)
 	if err != nil && err.Error() != scm.ErrNotSupported.Error() {
 		return fetchErr("reviews", err)
 	}
+	log.Warnf("APPROVING: got past review comments")
 
 	approversHandler := approvers.NewApprovers(
 		approvers.NewOwners(
@@ -406,7 +409,7 @@ func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serve
 	}
 	approversHandler.RequireIssue = opts.IssueRequired
 	approversHandler.ManuallyApproved = humanAddedApproved(spc, log, pr.org, pr.repo, pr.number, botName, hasApprovedLabel)
-
+	log.Warnf("APPROVING: Past issue/manual check")
 	// Author implicitly approves their own PR if config allows it
 	if opts.HasSelfApproval() {
 		approversHandler.AddAuthorSelfApprover(pr.author, pr.htmlURL+"#", false)
@@ -414,7 +417,7 @@ func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serve
 		// Treat the author as an assignee, and suggest them if possible
 		approversHandler.AddAssignees(pr.author)
 	}
-
+	log.Warnf("APPROVING: Past assigning bit")
 	commentsFromIssueComments := commentsFromIssueComments(issueComments)
 	comments := append(commentsFromReviewComments(reviewComments), commentsFromIssueComments...)
 	comments = append(comments, commentsFromReviews(reviews)...)
@@ -422,8 +425,9 @@ func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serve
 		return comments[i].Created.Before(comments[j].Created)
 	})
 	approveComments := filterComments(comments, approvalMatcher(botName, opts.LgtmActsAsApprove, opts.ConsiderReviewState()))
+	log.Warnf("APPROVING: past filter comments")
 	addApprovers(&approversHandler, approveComments, pr.author, opts.ConsiderReviewState())
-
+	log.Warnf("APPROVING: past add approvers")
 	for _, user := range pr.assignees {
 		approversHandler.AddAssignees(user.Login)
 	}
@@ -507,6 +511,7 @@ func isApprovalCommand(botName string, lgtmActsAsApprove bool, c *comment) bool 
 		if strings.HasPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix)) {
 			cmd = strings.TrimPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix))
 		}
+		logrus.Warnf("APPROVING: is %s approval?", cmd)
 		if (cmd == lgtmCommand && lgtmActsAsApprove) || cmd == approveCommand {
 			return true
 		}
@@ -562,6 +567,7 @@ func updateNotification(linkURL *url.URL, org, repo, branch string, latestNotifi
 // considered a cancel.
 func addApprovers(approversHandler *approvers.Approvers, approveComments []*comment, author string, reviewActsAsApprove bool) {
 	for _, c := range approveComments {
+		logrus.Warnf("APPROVING: comment: author: %s, body: %s", c.Author, c.Body)
 		if c.Author == "" {
 			continue
 		}
