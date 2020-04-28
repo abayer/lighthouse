@@ -69,8 +69,11 @@ github.com/abayer/go-scm v0.0.0-20200428150755-1f4c3adea0ac h1:d4u9kPnBwiWO9hCyd
 github.com/abayer/go-scm v0.0.0-20200428150755-1f4c3adea0ac/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/abayer/go-scm v0.0.0-20200428152919-08bf16d721fe h1:qI+Fk7ZJm7u6drQOZIFizjO/JRLeQJr/Kn2cw7NGL/c=
 github.com/abayer/go-scm v0.0.0-20200428152919-08bf16d721fe/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
+github.com/abayer/go-scm v0.0.0-20200428154746-aa3e91d9ca40 h1:mFhfW7KIa0VD45r115VYmRcbpiWuGx5k590vVhx09X0=
+github.com/abayer/go-scm v0.0.0-20200428154746-aa3e91d9ca40/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/abayer/go-scm v1.5.1-0.20200428150755-1f4c3adea0ac/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/abayer/go-scm v1.5.1-0.20200428152919-08bf16d721fe/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
+github.com/abayer/go-scm v1.5.1-0.20200428154746-aa3e91d9ca40/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d h1:licZJFw2RwpHMqeKTCYkitsPqHNxTmd4SNR5r94FGM8=
 github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d/go.mod h1:asat636LX7Bqt5lYEZ27JNDcqxfjdBQuJ/MM4CN/Lzo=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=
