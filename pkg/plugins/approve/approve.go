@@ -434,7 +434,8 @@ func handle(log *logrus.Entry, spc scmProviderClient, repo approvers.Repo, serve
 
 	notifications := filterComments(comments, notificationMatcher(botName))
 	latestNotification := getLast(notifications)
-	newMessage := updateNotification(serverURL, pr.org, pr.repo, pr.branch, latestNotification, approversHandler)
+	usePrefix := spc.ProviderType() == "gitlab"
+	newMessage := updateNotification(serverURL, pr.org, pr.repo, pr.branch, latestNotification, approversHandler, usePrefix)
 	if newMessage != nil {
 		for _, notif := range notifications {
 			if err := spc.DeleteComment(pr.org, pr.repo, pr.number, notif.ID, true); err != nil {
@@ -507,16 +508,21 @@ func isApprovalCommand(botName string, lgtmActsAsApprove bool, c *comment) bool 
 	}
 
 	for _, match := range commandRegex.FindAllStringSubmatch(c.Body, -1) {
-		cmd := strings.ToUpper(match[1])
-		if strings.HasPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix)) {
-			cmd = strings.TrimPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix))
-		}
+		cmd := removeLighthouseCommandPrefix(match[1])
 		logrus.Warnf("APPROVING: is %s approval?", cmd)
 		if (cmd == lgtmCommand && lgtmActsAsApprove) || cmd == approveCommand {
 			return true
 		}
 	}
 	return false
+}
+
+func removeLighthouseCommandPrefix(cmd string) string {
+	cmd = strings.ToUpper(cmd)
+	if strings.HasPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix)) {
+		cmd = strings.TrimPrefix(cmd, strings.ToUpper(util.LighthouseCommandPrefix))
+	}
+	return cmd
 }
 
 func isApprovalState(botName string, reviewActsAsApprove bool, c *comment) bool {
@@ -552,8 +558,8 @@ func notificationMatcher(botName string) func(*comment) bool {
 	}
 }
 
-func updateNotification(linkURL *url.URL, org, repo, branch string, latestNotification *comment, approversHandler approvers.Approvers) *string {
-	message := approvers.GetMessage(approversHandler, linkURL, org, repo, branch)
+func updateNotification(linkURL *url.URL, org, repo, branch string, latestNotification *comment, approversHandler approvers.Approvers, usePrefix bool) *string {
+	message := approvers.GetMessage(approversHandler, linkURL, org, repo, branch, usePrefix)
 	if message == nil || (latestNotification != nil && strings.Contains(latestNotification.Body, *message)) {
 		return nil
 	}
@@ -584,7 +590,7 @@ func addApprovers(approversHandler *approvers.Approvers, approveComments []*comm
 		}
 
 		for _, match := range commandRegex.FindAllStringSubmatch(c.Body, -1) {
-			name := strings.ToUpper(match[1])
+			name := removeLighthouseCommandPrefix(match[1])
 			if name != approveCommand && name != lgtmCommand {
 				continue
 			}
