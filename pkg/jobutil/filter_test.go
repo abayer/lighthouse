@@ -645,6 +645,57 @@ func TestPresubmitFilter(t *testing.T) {
 			expected: [][]bool{{false, false, false}, {false, false, false}, {true, false, true}, {true, false, true}, {true, false, true}},
 		},
 		{
+			name: "retest with prefix command selects for errored or failed contexts and required but missing contexts",
+			body: "/lh-retest",
+			org:  "org",
+			repo: "repo",
+			ref:  "ref",
+			presubmits: []config.Presubmit{
+				{
+					JobBase: config.JobBase{
+						Name: "successful-job",
+					},
+					Reporter: config.Reporter{
+						Context: "existing-successful",
+					},
+				},
+				{
+					JobBase: config.JobBase{
+						Name: "pending-job",
+					},
+					Reporter: config.Reporter{
+						Context: "existing-pending",
+					},
+				},
+				{
+					JobBase: config.JobBase{
+						Name: "failure-job",
+					},
+					Reporter: config.Reporter{
+						Context: "existing-failure",
+					},
+				},
+				{
+					JobBase: config.JobBase{
+						Name: "error-job",
+					},
+					Reporter: config.Reporter{
+						Context: "existing-error",
+					},
+				},
+				{
+					JobBase: config.JobBase{
+						Name: "missing-always-runs",
+					},
+					Reporter: config.Reporter{
+						Context: "missing-always-runs",
+					},
+					AlwaysRun: true,
+				},
+			},
+			expected: [][]bool{{false, false, false}, {false, false, false}, {true, false, true}, {true, false, true}, {true, false, true}},
+		},
+		{
 			name: "explicit test command filters for jobs that match",
 			body: "/test trigger",
 			org:  "org",

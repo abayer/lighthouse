@@ -127,6 +127,7 @@ func determineSkippedPresubmits(toTrigger, toSkipSuperset []config.Presubmit, lo
 // RetestFilter builds a filter for `/retest`
 func RetestFilter(failedContexts, allContexts sets.String) Filter {
 	return func(p config.Presubmit) (bool, bool, bool) {
+		logrus.Warnf("RETESTING: context: %s, in failed: %t, in all: %t", p.Context, failedContexts.Has(p.Context), allContexts.Has(p.Context))
 		return failedContexts.Has(p.Context) || (!p.NeedsExplicitTrigger() && !allContexts.Has(p.Context)), false, true
 	}
 }
@@ -144,7 +145,7 @@ func PresubmitFilter(honorOkToTest bool, contextGetter contextGetter, body strin
 	var filters []Filter
 	filters = append(filters, CommandFilter(body))
 	if RetestRe.MatchString(body) {
-		logger.Debug("Using retest filter.")
+		logger.Warnf("RETESTING: Using retest filter.")
 		failedContexts, allContexts, err := contextGetter()
 		if err != nil {
 			return nil, err

@@ -77,6 +77,7 @@ func handleGenericComment(c Client, trigger *plugins.Trigger, gc scmprovider.Gen
 		return fmt.Errorf("error checking trust of %s: %v", commentAuthor, err)
 	}
 	var l []*scm.Label
+	c.Logger.Warnf("RETESTING: trusted is %t", trusted)
 	if !trusted {
 		// Skip untrusted PRs.
 		l, trusted, err = TrustedPullRequest(c.SCMProviderClient, trigger, gc.IssueAuthor.Login, org, repo, number, nil)
