@@ -164,8 +164,10 @@ func FilterPresubmits(honorOkToTest bool, scmClient SCMProviderClient, body stri
 		return nil, nil, err
 	}
 
+	logger.Warnf("PROJ NOT F: Got past presubmit filter")
 	number, branch := pr.Number, pr.Base.Ref
 	changes := config.NewGitHubDeferredChangedFilesProvider(scmClient, org, repo, number)
+	logger.Warnf("PROJ NOT F: Past changedfiles provider funciton")
 	return jobutil.FilterPresubmits(filter, changes, branch, presubmits, logger)
 }
 

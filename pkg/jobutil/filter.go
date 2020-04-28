@@ -82,8 +82,10 @@ func FilterPresubmits(filter Filter, changes config.ChangedFilesProvider, branch
 		if !matches {
 			continue
 		}
+		logger.Warnf("PROJ NOT F: matches")
 		shouldRun, err := presubmit.ShouldRun(branch, changes, forced, defaults)
 		if err != nil {
+			logger.Warnf("PROJ NOT F: should run err: %s", err)
 			return nil, nil, err
 		}
 		if shouldRun {
@@ -100,7 +102,7 @@ func FilterPresubmits(filter Filter, changes config.ChangedFilesProvider, branch
 		namesToSkip = append(namesToSkip, presubmit.Name)
 	}
 
-	logger.WithFields(logrus.Fields{"to-trigger": namesToTrigger, "to-skip": namesToSkip}).Debugf("Filtered %d jobs, found %d to trigger and %d to skip.", len(presubmits), len(toTrigger), len(toSkipSuperset))
+	logger.WithFields(logrus.Fields{"to-trigger": namesToTrigger, "to-skip": namesToSkip}).Warnf("Filtered %d jobs, found %d to trigger and %d to skip.", len(presubmits), len(toTrigger), len(toSkipSuperset))
 	return toTrigger, toSkip, nil
 }
 
