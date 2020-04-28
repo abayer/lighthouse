@@ -38,9 +38,11 @@ func handleGenericComment(c Client, trigger *plugins.Trigger, gc scmprovider.Gen
 	// Only take action when a comment is first created,
 	// when it belongs to a PR,
 	// and the PR is open.
+	c.Logger.Warnf("RETESTING PRE: action: %s, isPR: %t, issueState: %s, body: %s, matches: %t", gc.Action.String(), gc.IsPR, gc.IssueState, gc.Body, jobutil.RetestRe.MatchString(gc.Body))
 	if gc.Action != scm.ActionCreate || !gc.IsPR || gc.IssueState != "open" {
 		return nil
 	}
+	c.Logger.Warnf("RETESTING: body: %s, matches: %t", gc.Body, jobutil.RetestRe.MatchString(gc.Body))
 	// Skip comments not germane to this plugin
 	if !jobutil.RetestRe.MatchString(gc.Body) && !jobutil.OkToTestRe.MatchString(gc.Body) && !jobutil.TestAllRe.MatchString(gc.Body) {
 		matched := false

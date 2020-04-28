@@ -104,7 +104,6 @@ func (s *Server) HandlePullRequestCommentEvent(l *logrus.Entry, pc scm.PullReque
 		"url":                    pc.Comment.Link,
 	})
 	l.Infof("PR comment %s.", pc.Action)
-
 	s.handleGenericComment(
 		l,
 		&scmprovider.GenericCommentEvent{
@@ -127,6 +126,8 @@ func (s *Server) HandlePullRequestCommentEvent(l *logrus.Entry, pc scm.PullReque
 
 func (s *Server) handleGenericComment(l *logrus.Entry, ce *scmprovider.GenericCommentEvent) {
 	for p, h := range s.Plugins.GenericCommentHandlers(ce.Repo.Namespace, ce.Repo.Name) {
+		l.Warnf("RETESTING: GENERIC COMMENT type %s", p)
+		l.Warnf("RETESTING: COMMENT: %s", ce.Body)
 		s.wg.Add(1)
 		go func(p string, h plugins.GenericCommentHandler) {
 			defer s.wg.Done()
