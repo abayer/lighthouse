@@ -250,7 +250,7 @@ func (c *Client) LoadRepoOwners(org, repo, base string) (RepoOwner, error) {
 	}
 
 	if c.skipCollaborators(org, repo) {
-		log.Debugf("Skipping collaborator checks for %s/%s", org, repo)
+		log.Warnf("Skipping collaborator checks for %s/%s", org, repo)
 		return entry.owners, nil
 	}
 
@@ -424,6 +424,8 @@ func (o *RepoOwners) walkFunc(path string, info os.FileInfo, err error) error {
 			o.applyOptionsToPath(relPathDir, c.Options)
 		}
 	} else {
+		cfgy, _ := yaml.Marshal(&simple.Config)
+		log.Warnf("owners config for %s is %s", path, cfgy)
 		// it's a SimpleConfig
 		o.applyConfigToPath(relPathDir, nil, &simple.Config)
 		o.applyOptionsToPath(relPathDir, simple.Options)
@@ -515,6 +517,7 @@ func (o *RepoOwners) filterCollaborators(toKeep []scm.User, orgMembers []*scm.Te
 	for _, om := range orgMembers {
 		collabs.Insert(scmprovider.NormLogin(om.Login))
 	}
+	logrus.Warnf("COLLABS: %s", collabs.List())
 
 	filter := func(ownerMap map[string]map[*regexp.Regexp]sets.String) map[string]map[*regexp.Regexp]sets.String {
 		filtered := make(map[string]map[*regexp.Regexp]sets.String)
@@ -528,8 +531,18 @@ func (o *RepoOwners) filterCollaborators(toKeep []scm.User, orgMembers []*scm.Te
 	}
 
 	result := *o
+	for p, v := range o.approvers {
+		for _, s := range v {
+			logrus.Warnf("PRE FILTER: for %s: %s", p, s.List())
+		}
+	}
 	result.approvers = filter(o.approvers)
 	result.reviewers = filter(o.reviewers)
+	for p, v := range result.approvers {
+		for _, s := range v {
+			logrus.Warnf("POST FILTER: for %s: %s", p, s.List())
+		}
+	}
 	return &result
 }
 
