@@ -45,6 +45,7 @@ func (c *Client) RequestReview(org, repo string, number int, logins []string) er
 		_, cperr := io.Copy(&b, resp.Body)
 		if cperr != nil {
 			logrus.WithError(cperr).Warnf("and something blew up copying the body")
+			logrus.Warnf("So here's the resp: %+v", resp)
 		} else {
 			logrus.Warnf("Resp body: %s", b.String())
 			logrus.Warnf("Resp code: %d", resp.Status)
