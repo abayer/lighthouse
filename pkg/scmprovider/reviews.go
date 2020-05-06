@@ -36,7 +36,10 @@ func (c *Client) RequestReview(org, repo string, number int, logins []string) er
 	ctx := context.Background()
 	fullName := c.repositoryName(org, repo)
 	_, err := c.client.PullRequests.RequestReview(ctx, fullName, number, logins)
-	return errors.Wrapf(err, "requesting review from %s", logins)
+	if err != nil {
+		return errors.Wrapf(err, "requesting review from %s", logins)
+	}
+	return nil
 }
 
 // UnrequestReview unrequest a review
@@ -44,5 +47,8 @@ func (c *Client) UnrequestReview(org, repo string, number int, logins []string) 
 	ctx := context.Background()
 	fullName := c.repositoryName(org, repo)
 	_, err := c.client.PullRequests.UnrequestReview(ctx, fullName, number, logins)
-	return errors.Wrapf(err, "unrequesting review from %s", logins)
+	if err != nil {
+		return errors.Wrapf(err, "unrequesting review from %s", logins)
+	}
+	return nil
 }
