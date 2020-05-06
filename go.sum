@@ -71,6 +71,8 @@ github.com/abayer/go-scm v1.5.1-0.20200506184523-47c979363d5b h1:FhAF98Kao5wFftC
 github.com/abayer/go-scm v1.5.1-0.20200506184523-47c979363d5b/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/abayer/go-scm v1.5.1-0.20200506184855-b4fcff5ba592 h1:a3XSQxs2EUJdhO8v5phCCZr9HHMWoylD1orK/sokT7k=
 github.com/abayer/go-scm v1.5.1-0.20200506184855-b4fcff5ba592/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
+github.com/abayer/go-scm v1.5.1-0.20200506185149-51ecf1bef6c5 h1:B2Cm6iFuVPy/cDKsaa8ygJ0qbRmfivefQRWfMIRk8DE=
+github.com/abayer/go-scm v1.5.1-0.20200506185149-51ecf1bef6c5/go.mod h1:PCT338UhP/pQ0IeEeMEf/hoLTYKcH7qjGEKd7jPkeYg=
 github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d h1:licZJFw2RwpHMqeKTCYkitsPqHNxTmd4SNR5r94FGM8=
 github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d/go.mod h1:asat636LX7Bqt5lYEZ27JNDcqxfjdBQuJ/MM4CN/Lzo=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=
