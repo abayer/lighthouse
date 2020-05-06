@@ -1,10 +1,13 @@
 package scmprovider
 
 import (
+	"bytes"
 	"context"
+	"io"
 
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // ListReviews list the reviews
@@ -35,8 +38,23 @@ func (c *Client) ListReviews(owner, repo string, number int) ([]*scm.Review, err
 func (c *Client) RequestReview(org, repo string, number int, logins []string) error {
 	ctx := context.Background()
 	fullName := c.repositoryName(org, repo)
-	_, err := c.client.PullRequests.RequestReview(ctx, fullName, number, logins)
+	resp, err := c.client.PullRequests.RequestReview(ctx, fullName, number, logins)
+	logrus.Warnf("SENT REQUEST REVIEW")
+	if resp != nil {
+		var b bytes.Buffer
+		_, cperr := io.Copy(&b, resp.Body)
+		if cperr != nil {
+			logrus.WithError(cperr).Warnf("and something blew up copying the body")
+		} else {
+			logrus.Warnf("Resp body: %s", b.String())
+			logrus.Warnf("Resp code: %d", resp.Status)
+			for h, v := range resp.Header {
+				logrus.Warnf("HEADER: %s, VALUE: %s", h, v)
+			}
+		}
+	}
 	if err != nil {
+		logrus.WithError(err).Warnf("ERROR ON THE REQUEST REVIEW: %s", err.Error())
 		return errors.Wrapf(err, "requesting review from %s", logins)
 	}
 	return nil

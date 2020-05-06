@@ -147,7 +147,7 @@ func handle(h *handler) error {
 	if len(toAdd) > 0 {
 		h.log.Printf("Adding %s to %s/%s#%d: %v", h.userType, org, repo, e.Number, toAdd)
 		if err := h.add(org, repo, e.Number, toAdd); err != nil {
-			logrus.WithError(err).Errorf("ERROR ADDING REVIEWER")
+			h.log.WithError(err).Errorf("ERROR ADDING REVIEWER")
 			if mu, ok := err.(scmprovider.MissingUsers); ok {
 				msg := h.addFailureResponse(mu)
 				if len(msg) == 0 {
@@ -160,6 +160,7 @@ func handle(h *handler) error {
 			}
 			return err
 		}
+		h.log.Warnf("Apparently did that thing?")
 	}
 	return nil
 }
