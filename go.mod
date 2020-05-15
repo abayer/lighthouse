@@ -61,6 +61,6 @@ replace github.com/banzaicloud/bank-vaults => github.com/banzaicloud/bank-vaults
 
 replace github.com/TV4/logrus-stackdriver-formatter => github.com/jenkins-x/logrus-stackdriver-formatter v0.1.1-0.20200408213659-1dcf20c371bb
 
-replace github.com/jenkins-x/go-scm => github.com/abayer/go-scm v1.5.1-0.20200515180722-c621b7afd288
+replace github.com/jenkins-x/go-scm => github.com/abayer/go-scm v1.5.1-0.20200515181650-049b29890b3d
 
 go 1.13
