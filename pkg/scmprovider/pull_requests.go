@@ -6,6 +6,7 @@ import (
 
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // MergeDetails optional extra parameters
@@ -145,7 +146,9 @@ func (c *Client) Merge(owner, repo string, number int, details MergeDetails) err
 		SHA:         details.SHA,
 		MergeMethod: details.MergeMethod,
 	}
-	_, err := c.client.PullRequests.Merge(ctx, fullName, number, mergeOptions)
+	resp, err := c.client.PullRequests.Merge(ctx, fullName, number, mergeOptions)
+	logrus.Warnf("RESP: %+v", resp)
+	logrus.Warnf("ERR: %+v", err)
 	return err
 }
 
