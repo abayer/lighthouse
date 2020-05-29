@@ -541,8 +541,10 @@ func isApprovalState(botName string, reviewActsAsApprove bool, c *comment) bool 
 	if reviewActsAsApprove && (reviewState == scm.ReviewStateApproved ||
 		reviewState == scm.ReviewStateChangesRequested ||
 		reviewState == scm.ReviewStateDismissed) {
+		logrus.Warnf("Yes, approved")
 		return true
 	}
+	logrus.Warnf("NOPE")
 	return false
 }
 
