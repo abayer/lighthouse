@@ -231,17 +231,19 @@ func handleReview(log *logrus.Entry, spc scmProviderClient, oc ownersClient, ser
 		return nil
 	}
 
+	log.Warnf("Checking if approval state %s is what we want", re.Review.State)
 	// Check for an approval command via review state. If none exists, don't
 	// handle this event.
 	if !isApprovalState(botName, opts.ConsiderReviewState(), &comment{Author: re.Review.Author.Login, ReviewState: re.Review.State}) {
 		return nil
 	}
 
+	log.Warnf("Loading repo owners")
 	repo, err := oc.LoadRepoOwners(re.Repo.Namespace, re.Repo.Name, re.PullRequest.Base.Ref)
 	if err != nil {
 		return err
 	}
-
+	log.Warnf("Past loading repo owners")
 	return handleFunc(
 		log,
 		spc,
