@@ -241,6 +241,7 @@ func handleReview(log *logrus.Entry, spc scmProviderClient, oc ownersClient, ser
 	log.Warnf("Loading repo owners")
 	repo, err := oc.LoadRepoOwners(re.Repo.Namespace, re.Repo.Name, re.PullRequest.Base.Ref)
 	if err != nil {
+		log.WithError(err).Warnf("error loading owners apparently")
 		return err
 	}
 	log.Warnf("Past loading repo owners")
@@ -531,7 +532,7 @@ func isApprovalState(botName string, reviewActsAsApprove bool, c *comment) bool 
 	// returns state as uppercase. Uppercase the value here so it always
 	// matches the constant.
 	reviewState := strings.ToUpper(c.ReviewState)
-
+	logrus.Warnf("IsApprovalState thinks reviewState is %s and reviewActsAsApprove is %t", reviewState, reviewActsAsApprove)
 	// ReviewStateApproved = /approve
 	// ReviewStateChangesRequested = /approve cancel
 	// ReviewStateDismissed = remove previous approval or disapproval
@@ -712,6 +713,7 @@ func commentFromReview(review *scm.Review) *comment {
 	if review == nil {
 		return nil
 	}
+	logrus.Warnf("review author: %s, state: %s", review.Author.Login, review.State)
 	return &comment{
 		Body:        review.Body,
 		Author:      review.Author.Login,
