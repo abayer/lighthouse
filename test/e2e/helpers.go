@@ -135,7 +135,6 @@ func CreateBaseRepository(botUser, approver string, botClient *scm.Client, gitCl
 	repoName := baseRepoName + "-" + strconv.FormatInt(GinkgoRandomSeed(), 10)
 
 	input := &scm.RepositoryInput{
-		Namespace: botUser,
 		Name:      repoName,
 		Private:   true,
 	}
