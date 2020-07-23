@@ -144,6 +144,9 @@ func CreateBaseRepository(botUser, approver string, botClient *scm.Client, gitCl
 		return nil, "", errors.Wrapf(err, "failed to create repository: %+v", resp)
 	}
 
+	// Sleep 5 seconds to ensure repository exists enough to be pushed to.
+	time.Sleep(5 * time.Second)
+
 	r, err := gitClient.Clone(repo.Namespace + "/" + repo.Name)
 	if err != nil {
 		return nil, "", errors.Wrapf(err, "could not clone %s", repo.FullName)
