@@ -209,7 +209,7 @@ func ExpectCommandExecution(dir string, commandTimeout time.Duration, exitCode i
 		command.Dir = dir
 		logrus.Warnf("running %s %s", c, strings.Join(args, " "))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		session.Wait(commandTimeout * 10)
+		session.Wait(10 * time.Second)
 		Eventually(session).Should(gexec.Exit(exitCode))
 		return err
 	}
