@@ -206,7 +206,6 @@ func ExpectCommandExecution(dir string, commandTimeout time.Duration, exitCode i
 		command := exec.Command(c, args...)
 		command.Dir = dir
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		session.Wait(commandTimeout)
 		Eventually(session).Should(gexec.Exit(exitCode))
 		return err
 	}
