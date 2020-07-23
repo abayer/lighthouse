@@ -18,7 +18,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	tektonv1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 )
 
@@ -88,14 +87,14 @@ var _ = BeforeSuite(func() {
 	Expect(err).ShouldNot(HaveOccurred())
 })
 
-var _ = AfterSuite(func() {
+/*var _ = AfterSuite(func() {
 	err := gitClient.Clean()
 	if err != nil {
 		logrus.WithError(err).Fatal("Error cleaning the git client.")
 	}
 
 })
-
+*/
 func TestTekton(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Lighthouse Tekton")

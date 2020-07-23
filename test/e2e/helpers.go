@@ -192,6 +192,7 @@ func CreateBaseRepository(botUser, approver string, botClient *scm.Client, gitCl
 
 	ExpectCommandExecution(r.Dir, 1, 0, "git", "commit", "-a", "-m", "Initial commit of functioning script and OWNERS")
 
+	logrus.Warnf("trying to push from %s", r.Dir)
 	err = r.Push(repo.Namespace+"/"+repo.Name, "master")
 	if err != nil {
 		return nil, "", errors.Wrapf(err, "failed to push to %s", repo.Clone)
