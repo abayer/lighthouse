@@ -230,10 +230,11 @@ type configReplacement struct {
 	Owner     string
 	Repo      string
 	Namespace string
+	Agent     string
 }
 
 // ProcessConfigAndPlugins reads the templates for the config and plugins config maps and replaces the owner, repo, and namespace in them
-func ProcessConfigAndPlugins(owner, repo, namespace string) (*config.Config, *plugins.Configuration, error) {
+func ProcessConfigAndPlugins(owner, repo, namespace, agent string) (*config.Config, *plugins.Configuration, error) {
 	cfgFile := filepath.Join("test_data", "example-config.tmpl.yml")
 	pluginFile := filepath.Join("test_data", "example-plugins.tmpl.yml")
 
@@ -259,6 +260,7 @@ func ProcessConfigAndPlugins(owner, repo, namespace string) (*config.Config, *pl
 		Owner:     owner,
 		Repo:      repo,
 		Namespace: namespace,
+		Agent:     agent,
 	}
 
 	var cfgBuf bytes.Buffer

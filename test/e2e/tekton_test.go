@@ -71,13 +71,13 @@ var _ = BeforeSuite(func() {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	By(fmt.Sprintf("creating and populating Lighthouse config for %s", repo.Clone))
-	cfg, pluginCfg, err := ProcessConfigAndPlugins(repo.Namespace, repo.Name, ns)
+	cfg, pluginCfg, err := ProcessConfigAndPlugins(repo.Namespace, repo.Name, ns, config.TektonPipelineAgent)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(cfg).ShouldNot(BeNil())
 	Expect(pluginCfg).ShouldNot(BeNil())
 
 	cfg.Presubmits[fmt.Sprintf("%s/%s", repo.Namespace, repo.Name)][0].PipelineRunSpec = generatePipelineRunSpec()
-	cfg.Presubmits[fmt.Sprintf("%s/%s", repo.Namespace, repo.Name)][0].Agent = config.TektonPipelineAgent
+//	cfg.Presubmits[fmt.Sprintf("%s/%s", repo.Namespace, repo.Name)][0].Agent = config.TektonPipelineAgent
 
 	err = ApplyConfigAndPluginsConfigMaps(cfg, pluginCfg)
 	Expect(err).ShouldNot(HaveOccurred())
