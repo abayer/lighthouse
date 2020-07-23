@@ -25,6 +25,7 @@ import (
 	"github.com/jenkins-x/lighthouse/pkg/util"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
@@ -68,7 +69,7 @@ func CreateSCMClient(userFunc func() string, tokenFunc func() (string, error)) (
 		return nil, nil, "", err
 	}
 	util.AddAuthToSCMClient(client, token, false)
-
+	logrus.Warnf("server is: %s", serverURL)
 	spc := scmprovider.ToClient(client, userFunc())
 	return client, spc, serverURL, err
 }
@@ -139,9 +140,9 @@ func CreateBaseRepository(botUser, approver string, botClient *scm.Client, gitCl
 		Private:   true,
 	}
 
-	repo, _, err := botClient.Repositories.Create(context.Background(), input)
+	repo, resp, err := botClient.Repositories.Create(context.Background(), input)
 	if err != nil {
-		return nil, "", errors.Wrapf(err, "failed to create repository")
+		return nil, "", errors.Wrapf(err, "failed to create repository: %+v", resp)
 	}
 
 	r, err := gitClient.Clone(repo.Namespace + "/" + repo.Name)
