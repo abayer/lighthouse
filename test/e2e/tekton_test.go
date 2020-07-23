@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/lighthouse-config/pkg/config"
@@ -18,6 +19,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	tektonv1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 )
 
@@ -60,7 +62,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(gitClient).ShouldNot(BeNil())
 
-	By("creating repository")
+/*	By("creating repository")
 	repo, repoDir, err = CreateBaseRepository(GetBotName(), GetApproverName(), scmClient, gitClient)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(repo).ShouldNot(BeNil())
@@ -69,7 +71,21 @@ var _ = BeforeSuite(func() {
 	By("adding the Pipeline and Task definitions to the cluster")
 	err = applyPipelineAndTask()
 	Expect(err).ShouldNot(HaveOccurred())
+*/
 
+	repo := &scm.Repository{
+		Namespace: "abayer-bot",
+		Name:      "lh-e2e-test-1595512560",
+		FullName:  "abayer-bot/lh-e2e-test-1595512560",
+		Perm:      nil,
+		Branch:    "",
+		Private:   true,
+		Clone:     "https://github.com/abayer-bot/lh-e2e-test-1595512560.git",
+		CloneSSH:  "",
+		Link:      "",
+		Created:   time.Time{},
+		Updated:   time.Time{},
+	}
 	By(fmt.Sprintf("creating and populating Lighthouse config for %s", repo.Clone))
 	cfg, pluginCfg, err := ProcessConfigAndPlugins(repo.Namespace, repo.Name, ns, config.TektonPipelineAgent)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -87,14 +103,14 @@ var _ = BeforeSuite(func() {
 	Expect(err).ShouldNot(HaveOccurred())
 })
 
-/*var _ = AfterSuite(func() {
+var _ = AfterSuite(func() {
 	err := gitClient.Clean()
 	if err != nil {
 		logrus.WithError(err).Fatal("Error cleaning the git client.")
 	}
 
 })
-*/
+
 func TestTekton(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Lighthouse Tekton")

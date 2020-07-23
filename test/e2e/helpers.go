@@ -19,8 +19,9 @@ import (
 	"github.com/jenkins-x/go-scm/scm"
 	"github.com/jenkins-x/go-scm/scm/factory"
 	"github.com/jenkins-x/lighthouse-config/pkg/config"
-	"github.com/jenkins-x/lighthouse-config/pkg/plugins"
+	cfgplugins "github.com/jenkins-x/lighthouse-config/pkg/plugins"
 	"github.com/jenkins-x/lighthouse/pkg/git"
+	"github.com/jenkins-x/lighthouse/pkg/plugins"
 	"github.com/jenkins-x/lighthouse/pkg/repoowners"
 	"github.com/jenkins-x/lighthouse/pkg/scmprovider"
 	"github.com/jenkins-x/lighthouse/pkg/util"
@@ -234,7 +235,7 @@ type configReplacement struct {
 }
 
 // ProcessConfigAndPlugins reads the templates for the config and plugins config maps and replaces the owner, repo, and namespace in them
-func ProcessConfigAndPlugins(owner, repo, namespace, agent string) (*config.Config, *plugins.Configuration, error) {
+func ProcessConfigAndPlugins(owner, repo, namespace, agent string) (*config.Config, *cfgplugins.Configuration, error) {
 	cfgFile := filepath.Join("test_data", "example-config.tmpl.yml")
 	pluginFile := filepath.Join("test_data", "example-plugins.tmpl.yml")
 
@@ -275,15 +276,14 @@ func ProcessConfigAndPlugins(owner, repo, namespace, agent string) (*config.Conf
 		return nil, nil, errors.Wrapf(err, "applying plugins template from %s", pluginFile)
 	}
 
-	var generatedCfg *config.Config
-	var generatedPlugin *plugins.Configuration
-
-	err = yaml.Unmarshal(cfgBuf.Bytes(), generatedCfg)
+	generatedCfg, err := config.LoadYAMLConfig(cfgBuf.Bytes())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "unmarshalling config from %s", cfgFile)
 	}
 
-	err = yaml.Unmarshal(pluginBuf.Bytes(), generatedPlugin)
+	pluginAgent := &plugins.ConfigAgent{}
+
+	generatedPlugin, err := pluginAgent.LoadYAMLConfig(pluginBuf.Bytes())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "unmarshalling plugins from %s", pluginFile)
 	}
@@ -310,7 +310,7 @@ func CreateWebHook(scmClient *scm.Client, repo *scm.Repository, hmacToken string
 }
 
 // ApplyConfigAndPluginsConfigMaps takes the config and plugins and creates/applies the config maps in the cluster using kubectl
-func ApplyConfigAndPluginsConfigMaps(cfg *config.Config, pluginsCfg *plugins.Configuration) error {
+func ApplyConfigAndPluginsConfigMaps(cfg *config.Config, pluginsCfg *cfgplugins.Configuration) error {
 	cfgMap := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
@@ -320,6 +320,7 @@ func ApplyConfigAndPluginsConfigMaps(cfg *config.Config, pluginsCfg *plugins.Con
 			Name:      "config",
 			Namespace: cfg.LighthouseJobNamespace,
 		},
+		Data: make(map[string]string),
 	}
 	cfgData, err := yaml.Marshal(cfg)
 	if err != nil {
@@ -336,12 +337,13 @@ func ApplyConfigAndPluginsConfigMaps(cfg *config.Config, pluginsCfg *plugins.Con
 			Name:      "plugins",
 			Namespace: cfg.LighthouseJobNamespace,
 		},
+		Data: make(map[string]string),
 	}
 	pluginData, err := yaml.Marshal(pluginsCfg)
 	if err != nil {
 		return errors.Wrapf(err, "writing plugins to YAML")
 	}
-	cfgMap.Data["plugins.yaml"] = string(pluginData)
+	pluginMap.Data["plugins.yaml"] = string(pluginData)
 
 	tmpDir, err := ioutil.TempDir("", "kubectl")
 	if err != nil {
