@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -206,7 +207,9 @@ func ExpectCommandExecution(dir string, commandTimeout time.Duration, exitCode i
 	f := func() error {
 		command := exec.Command(c, args...)
 		command.Dir = dir
+		logrus.Warnf("running %s %s", c, strings.Join(args, " "))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		session.Wait(commandTimeout * 10)
 		Eventually(session).Should(gexec.Exit(exitCode))
 		return err
 	}
