@@ -167,6 +167,17 @@ func TestHandleGenericComment(t *testing.T) {
 			RemovedLabels: issueLabels(labels.NeedsOkToTest),
 		},
 		{
+			name: `Non-trusted member after "/ok-to-test", waiting-for-ok-to-test label wasn't deleted.`,
+
+			Author:        "untrusted-member",
+			Body:          "/test all",
+			State:         "open",
+			IsPR:          true,
+			ShouldBuild:   true,
+			IssueLabels:   issueLabels(labels.WaitingForOkToTest, labels.OkToTest),
+			RemovedLabels: issueLabels(labels.WaitingForOkToTest),
+		},
+		{
 			name: "Trusted member's ok to test, IgnoreOkToTest",
 
 			Author:         "trusted-member",
@@ -332,6 +343,44 @@ func TestHandleGenericComment(t *testing.T) {
 			IssueLabels:   issueLabels(labels.NeedsOkToTest),
 			AddedLabels:   issueLabels(labels.OkToTest),
 			RemovedLabels: issueLabels(labels.NeedsOkToTest),
+		},
+		{
+			name: "waiting-for-ok-to-test label is removed when no presubmit runs by default",
+
+			Author:      "trusted-member",
+			Body:        "/ok-to-test",
+			State:       "open",
+			IsPR:        true,
+			ShouldBuild: false,
+			Presubmits: map[string][]config.Presubmit{
+				"org/repo": {
+					{
+						JobBase: config.JobBase{
+							Name: "job",
+						},
+						AlwaysRun: false,
+						Reporter: config.Reporter{
+							Context: "pull-job",
+						},
+						Trigger:      `(?m)^/test (?:.*? )?job(?: .*?)?$`,
+						RerunCommand: `/test job`,
+					},
+					{
+						JobBase: config.JobBase{
+							Name: "jib",
+						},
+						AlwaysRun: false,
+						Reporter: config.Reporter{
+							Context: "pull-jib",
+						},
+						Trigger:      `(?m)^/test (?:.*? )?jib(?: .*?)?$`,
+						RerunCommand: `/test jib`,
+					},
+				},
+			},
+			IssueLabels:   issueLabels(labels.WaitingForOkToTest),
+			AddedLabels:   issueLabels(labels.OkToTest),
+			RemovedLabels: issueLabels(labels.WaitingForOkToTest),
 		},
 		{
 			name:   "Wrong branch w/ SkipReport",

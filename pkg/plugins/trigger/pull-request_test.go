@@ -110,13 +110,14 @@ func TestHandlePullRequest(t *testing.T) {
 	var testcases = []struct {
 		name string
 
-		Author        string
-		ShouldBuild   bool
-		ShouldComment bool
-		HasOkToTest   bool
-		prLabel       string
-		prChanges     bool
-		prAction      scm.Action
+		Author                string
+		ShouldBuild           bool
+		ShouldComment         bool
+		HasOkToTest           bool
+		hasWaitingForOkToTest bool
+		prLabel               string
+		prChanges             bool
+		prAction              scm.Action
 	}{
 		{
 			name: "Trusted user open PR should build",
@@ -134,11 +135,28 @@ func TestHandlePullRequest(t *testing.T) {
 			prAction:      scm.ActionOpen,
 		},
 		{
+			name: "Trusted user open PR with waiting-for-ok-to-test should not build and should comment",
+
+			Author:                "t",
+			ShouldBuild:           false,
+			ShouldComment:         true,
+			hasWaitingForOkToTest: true,
+			prAction:              scm.ActionOpen,
+		},
+		{
 			name: "Trusted user reopen PR should build",
 
 			Author:      "t",
 			ShouldBuild: true,
 			prAction:    scm.ActionReopen,
+		},
+		{
+			name: "Trusted user reopen PR with waiting-for-ok-to-test should not build",
+
+			Author:                "t",
+			ShouldBuild:           false,
+			hasWaitingForOkToTest: true,
+			prAction:              scm.ActionReopen,
 		},
 		{
 			name: "Untrusted user reopen PR with ok-to-test should build",
@@ -156,12 +174,29 @@ func TestHandlePullRequest(t *testing.T) {
 			prAction:    scm.ActionReopen,
 		},
 		{
+			name: "Untrusted user reopen PR with waiting-for-ok-to-test should not build",
+
+			Author:                "u",
+			ShouldBuild:           false,
+			hasWaitingForOkToTest: true,
+			prAction:              scm.ActionReopen,
+		},
+		{
 			name: "Trusted user edit PR with changes should build",
 
 			Author:      "t",
 			ShouldBuild: true,
 			prChanges:   true,
 			prAction:    scm.ActionEdited,
+		},
+		{
+			name: "Trusted user edit PR with changes and waiting-for-ok-to-test should not build",
+
+			Author:                "t",
+			ShouldBuild:           false,
+			hasWaitingForOkToTest: true,
+			prChanges:             true,
+			prAction:              scm.ActionEdited,
 		},
 		{
 			name: "Trusted user edit PR without changes should not build",
@@ -210,6 +245,14 @@ func TestHandlePullRequest(t *testing.T) {
 			prAction:    scm.ActionSync,
 		},
 		{
+			name: "Trusted user sync PR with waiting-for-ok-to-test should not build",
+
+			Author:                "t",
+			ShouldBuild:           false,
+			hasWaitingForOkToTest: true,
+			prAction:              scm.ActionSync,
+		},
+		{
 			name: "Untrusted user sync PR without ok-to-test should not build",
 
 			Author:      "u",
@@ -239,6 +282,15 @@ func TestHandlePullRequest(t *testing.T) {
 			ShouldBuild: true,
 			prAction:    scm.ActionLabel,
 			prLabel:     labels.LGTM,
+		},
+		{
+			name: "Untrusted user labeled PR with lgtm and waiting-for-ok-to-test should build",
+
+			Author:                "u",
+			ShouldBuild:           true,
+			hasWaitingForOkToTest: true,
+			prAction:              scm.ActionLabel,
+			prLabel:               labels.LGTM,
 		},
 		{
 			name: "Untrusted user labeled PR without lgtm should not build",
@@ -298,6 +350,9 @@ func TestHandlePullRequest(t *testing.T) {
 			t.Fatalf("failed to set presubmits: %v", err)
 		}
 
+		if tc.hasWaitingForOkToTest {
+			g.PullRequestLabelsExisting = append(g.PullRequestLabelsExisting, issueLabels(labels.WaitingForOkToTest)...)
+		}
 		if tc.HasOkToTest {
 			g.PullRequestLabelsExisting = append(g.PullRequestLabelsExisting, issueLabels(labels.OkToTest)...)
 		}

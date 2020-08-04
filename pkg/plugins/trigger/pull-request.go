@@ -27,6 +27,7 @@ import (
 	"github.com/jenkins-x/lighthouse/pkg/labels"
 	"github.com/jenkins-x/lighthouse/pkg/plugins"
 	"github.com/jenkins-x/lighthouse/pkg/scmprovider"
+	"github.com/pkg/errors"
 )
 
 func handlePR(c Client, trigger *plugins.Trigger, pr scm.PullRequestHook) error {
@@ -37,51 +38,66 @@ func handlePR(c Client, trigger *plugins.Trigger, pr scm.PullRequestHook) error 
 	org, repo, a := orgRepoAuthor(pr.PullRequest)
 	author := string(a)
 	num := pr.PullRequest.Number
+	originalLabels, err := c.SCMProviderClient.GetIssueLabels(org, repo, num, true)
+	hasWaitingForOk := scmprovider.HasLabel(labels.WaitingForOkToTest, originalLabels)
+
+	if err != nil {
+		return errors.Wrapf(err, "could not get labels on PR %s/%s #%d", org, repo, num)
+	}
 	switch pr.Action {
 	case scm.ActionOpen:
-		// When a PR is opened, if the author is in the org then build it.
-		// Otherwise, ask for "/ok-to-test". There's no need to look for previous
-		// "/ok-to-test" comments since the PR was just opened!
-		member, err := TrustedUser(c.SCMProviderClient, trigger, author, org, repo)
-		if err != nil {
-			return fmt.Errorf("could not check membership: %s", err)
-		}
-		if member {
-			c.Logger.Infof("Author %q is a member, Starting all jobs for new PR.", author)
-			return buildAll(c, &pr.PullRequest, pr.GUID, trigger.ElideSkippedContexts)
+		// If the PR has "waiting-for-ok-to-test", just go straight to the welcome message.
+		if !hasWaitingForOk {
+			// When a PR is opened, if the author is in the org then build it.
+			// Otherwise, ask for "/ok-to-test". There's no need to look for previous
+			// "/ok-to-test" comments since the PR was just opened!
+			member, err := TrustedUser(c.SCMProviderClient, trigger, author, org, repo)
+			if err != nil {
+				return fmt.Errorf("could not check membership: %s", err)
+			}
+			if member {
+				c.Logger.Infof("Author %q is a member, Starting all jobs for new PR.", author)
+				return buildAll(c, &pr.PullRequest, pr.GUID, trigger.ElideSkippedContexts)
+			}
 		}
 		c.Logger.Infof("Author is not a member, Welcome message to PR author %q.", author)
 		if err := welcomeMsg(c.SCMProviderClient, trigger, pr.PullRequest); err != nil {
 			return fmt.Errorf("could not welcome non-org member %q: %v", author, err)
 		}
 	case scm.ActionReopen:
-		// When a PR is reopened, check that the user is in the org or that an org
-		// member had said "/ok-to-test" before building, resulting in label ok-to-test.
-		l, trusted, err := TrustedPullRequest(c.SCMProviderClient, trigger, author, org, repo, num, nil)
-		if err != nil {
-			return fmt.Errorf("could not validate PR: %s", err)
-		} else if trusted {
-			// Eventually remove need-ok-to-test
-			// Does not work for TrustedUser() == true since labels are not fetched in this case
-			if scmprovider.HasLabel(labels.NeedsOkToTest, l) {
-				if err := c.SCMProviderClient.RemoveLabel(org, repo, num, labels.NeedsOkToTest, true); err != nil {
-					return err
+		if !hasWaitingForOk {
+			// When a PR is reopened, check that the user is in the org or that an org
+			// member had said "/ok-to-test" before building, resulting in label ok-to-test.
+			l, trusted, err := TrustedPullRequest(c.SCMProviderClient, trigger, author, org, repo, num, nil)
+			if err != nil {
+				return fmt.Errorf("could not validate PR: %s", err)
+			} else if trusted {
+				// Eventually remove need-ok-to-test
+				// Does not work for TrustedUser() == true since labels are not fetched in this case
+				if scmprovider.HasLabel(labels.NeedsOkToTest, l) {
+					if err := c.SCMProviderClient.RemoveLabel(org, repo, num, labels.NeedsOkToTest, true); err != nil {
+						return err
+					}
 				}
+				c.Logger.Info("Starting all jobs for updated PR.")
+				return buildAll(c, &pr.PullRequest, pr.GUID, trigger.ElideSkippedContexts)
 			}
-			c.Logger.Info("Starting all jobs for updated PR.")
-			return buildAll(c, &pr.PullRequest, pr.GUID, trigger.ElideSkippedContexts)
 		}
 	case scm.ActionEdited, scm.ActionUpdate:
-		// if someone changes the base of their PR, we will get this
-		// event and the changes field will list that the base SHA and
-		// ref changes so we can detect such a case and retrigger tests
-		changes := pr.Changes
-		if changes.Base.Ref.From != "" || changes.Base.Sha.From != "" {
-			// the base of the PR changed and we need to re-test it
-			return buildAllIfTrusted(c, trigger, pr)
+		if !hasWaitingForOk {
+			// if someone changes the base of their PR, we will get this
+			// event and the changes field will list that the base SHA and
+			// ref changes so we can detect such a case and retrigger tests
+			changes := pr.Changes
+			if changes.Base.Ref.From != "" || changes.Base.Sha.From != "" {
+				// the base of the PR changed and we need to re-test it
+				return buildAllIfTrusted(c, trigger, pr)
+			}
 		}
 	case scm.ActionSync:
-		return buildAllIfTrusted(c, trigger, pr)
+		if !hasWaitingForOk {
+			return buildAllIfTrusted(c, trigger, pr)
+		}
 	case scm.ActionLabel:
 		// When a PR is LGTMd, if it is untrusted then build it once.
 		if pr.Label.Name == labels.LGTM {

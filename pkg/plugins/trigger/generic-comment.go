@@ -105,9 +105,16 @@ func handleGenericComment(c Client, trigger *plugins.Trigger, gc scmprovider.Gen
 			return err
 		}
 	}
-	if (isOkToTest || scmprovider.HasLabel(labels.OkToTest, l)) && scmprovider.HasLabel(labels.NeedsOkToTest, l) {
-		if err := c.SCMProviderClient.RemoveLabel(org, repo, number, labels.NeedsOkToTest, gc.IsPR); err != nil {
-			return err
+	if isOkToTest || scmprovider.HasLabel(labels.OkToTest, l) {
+		if scmprovider.HasLabel(labels.NeedsOkToTest, l) {
+			if err := c.SCMProviderClient.RemoveLabel(org, repo, number, labels.NeedsOkToTest, gc.IsPR); err != nil {
+				return err
+			}
+		}
+		if scmprovider.HasLabel(labels.WaitingForOkToTest, l) {
+			if err := c.SCMProviderClient.RemoveLabel(org, repo, number, labels.WaitingForOkToTest, gc.IsPR); err != nil {
+				return err
+			}
 		}
 	}
 
