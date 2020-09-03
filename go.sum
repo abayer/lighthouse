@@ -132,8 +132,12 @@ github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:H
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/sarama v1.23.1/go.mod h1:XLH1GYJnLVE0XCr6KdJGVJRTwY30moWNJ4sERjXX6fs=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
+github.com/abayer/gitea-go-sdk/gitea v0.0.0-20200903205906-36bfc7e4dde3 h1:kWHgelPEdzF8P453dVBo3iTgWJJ7p25dZfxWK++KWsA=
+github.com/abayer/gitea-go-sdk/gitea v0.0.0-20200903205906-36bfc7e4dde3/go.mod h1:4I6+/fY6N2FQfG1wmVNJGknluGK392x/GDMbu7wgj6E=
 github.com/abayer/go-scm v1.5.1-0.20200903203030-e7e6adb8e856 h1:YAE60GFgc59SaBMejYVazrhQfqM/cgxIJj54pk5XLAY=
 github.com/abayer/go-scm v1.5.1-0.20200903203030-e7e6adb8e856/go.mod h1:wJgj7PfgsCs+YAXC0vEj43g48HKf94apSyza62ADxKY=
+github.com/abayer/go-scm v1.5.1-0.20200903210043-b160fa395f13 h1:jx/JZOFSpXt/asYk2aJcpOs+z6Dy8NOeCUIyQpxDDrk=
+github.com/abayer/go-scm v1.5.1-0.20200903210043-b160fa395f13/go.mod h1:jXYvIYi9Ivglpmo/9yDx9E9DNJohAOcHWaTUs8mgJFo=
 github.com/agnivade/levenshtein v1.0.1/go.mod h1:CURSv5d9Uaml+FovSIICkLbAUZ9S4RqaHDIsdSBg7lM=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7/go.mod h1:6zEj6s6u/ghQa61ZWa/C2Aw3RkjiTBOix7dkqa1VLIs=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

@@ -34,6 +34,8 @@ require (
 
 replace k8s.io/client-go => k8s.io/client-go v0.17.6
 
-replace github.com/jenkins-x/go-scm => github.com/abayer/go-scm v1.5.1-0.20200903203030-e7e6adb8e856
+replace github.com/jenkins-x/go-scm => github.com/abayer/go-scm v1.5.1-0.20200903210043-b160fa395f13
+
+replace code.gitea.io/sdk/gitea => github.com/abayer/gitea-go-sdk/gitea v0.0.0-20200903205906-36bfc7e4dde3
 
 go 1.13
