@@ -80,18 +80,17 @@ helm3 repo update
 cat bdd/gitea/gitea.values.yaml.template | sed 's/EXTERNAL_IP/'"$EXTERNAL_IP"'/' > gitea.values.yaml
 helm3 install --namespace lh-test -f gitea.values.yaml gitea gitea-charts/gitea
 
-giteaUp="false"
 # Loop for a bit to make sure gitea comes up
 for i in {1..20}; do
-  giteaUp=$(kubectl get pod gitea-0 -o jsonpath="{.status.containerStatuses[0].ready}")
-  if [[ "${giteaUp}" = "true" ]]; then
+  giteaPodReady=$(kubectl get pod gitea-0 -o jsonpath="{.status.containerStatuses[0].ready}")
+  if [[ "${giteaPodReady}" = "true" ]]; then
     break
   fi
-  echo "Gitea ready status: ${giteaUp}"
+  echo "Gitea ready status: ${giteaPodReady}"
   sleep 10
 done
 
-if [[ "${giteaUp}" != "true" ]]; then
+if [[ "${giteaPodReady}" != "true" ]]; then
   echo "Gitea never came up? $(kubectl get pod gitea-0)"
   exit 1;
 fi
@@ -99,6 +98,21 @@ fi
 E2E_GIT_SERVER="http://gitea.${EXTERNAL_IP}.nip.io"
 GIT_SERVER_API="http://gitea_admin:abcdEFGH@gitea.${EXTERNAL_IP}.nip.io"
 export E2E_GIT_SERVER
+
+# And then loop for a bit to make sure it's actually serving properly
+for i in {1..20}; do
+  giteaServing=$(curl -LI -o /dev/null -w '%{http_code}' -s "${GIT_SERVER_API}/api/v1/admin/users")
+  if [[ "${giteaServing}" = "200" ]]; then
+    break
+  fi
+  echo "Gitea status code: ${giteaServing}"
+  sleep 10
+done
+
+if [[ "${giteaServing}" != "200" ]]; then
+  echo "Gitea never served? Got ${giteaServing}"
+  exit 1;
+fi
 
 # Create the users and their tokens
 cat bdd/gitea/user.template.json | sed 's/USERNAME/'"$E2E_PRIMARY_SCM_USER"'/' > primaryuser.json
