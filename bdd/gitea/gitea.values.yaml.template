@@ -8,3 +8,7 @@ ingress:
 gitea:
   admin:
     password: abcdEFGH
+
+  config:
+    service:
+      DISABLE_REGISTRATION: true

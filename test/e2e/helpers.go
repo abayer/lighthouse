@@ -356,6 +356,16 @@ func CreateWebHook(scmClient *scm.Client, repo *scm.Repository, hmacToken string
 		Secret:       hmacToken,
 		NativeEvents: []string{"*"},
 	}
+	if scmClient.Driver.String() == "gitea" {
+		input.Events.Issue = true
+		input.Events.PullRequest = true
+		input.Events.Branch = true
+		input.Events.IssueComment = true
+		input.Events.PullRequestComment = true
+		input.Events.Push = true
+		input.Events.ReviewComment = true
+		input.Events.Tag = true
+	}
 	_, _, err = scmClient.Repositories.CreateHook(context.Background(), repo.Namespace+"/"+repo.Name, input)
 
 	return err
