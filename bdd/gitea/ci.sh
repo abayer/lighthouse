@@ -145,6 +145,8 @@ popd
 gomplate -f bdd/gitea/values.yaml.template -o myvalues.yaml
 #cat bdd/tekton/values.yaml.template | sed 's/$VERSION/'"$VERSION"'/' | sed 's/$BOTUSER/'"$E2E_PRIMARY_SCM_USER"'/' | sed 's/$HMACTOKEN/'"$E2E_HMAC_TOKEN"'/' | sed 's/$BOTSECRET/'"$E2E_PRIMARY_SCM_TOKEN"'/' | sed 's/$DOMAINNAME/'"$EXTERNAL_IP"'/' > myvalues.yaml
 
+cat myvalues.yaml
+
 # helm 3 is installed on jx builders as "helm3", and that's what we want to use to install here.
 helm3 install -f myvalues.yaml --namespace lh-test lighthouse charts/lighthouse
 
