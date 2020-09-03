@@ -120,12 +120,12 @@ cat bdd/gitea/user.template.json | sed 's/USERNAME/'"$E2E_PRIMARY_SCM_USER"'/' >
 curl -X POST "${GIT_SERVER_API}/api/v1/admin/users" -H "accept: application/json" -H "Content-Type: application/json" -d @primaryuser.json
 # edit to give admin
 curl -X PATCH "${GIT_SERVER_API}/api/v1/admin/users/${E2E_PRIMARY_SCM_USER}" -H "accept: application/json" -H "Content-Type: application/json" -d @primaryuser.json
-E2E_PRIMARY_SCM_TOKEN=$(curl -X POST "${GIT_SERVER_API}/api/v1/users/${E2E_PRIMARY_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"bot_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
+E2E_PRIMARY_SCM_TOKEN=$(curl -X POST "http://lighthouse-bot:ab_d1234HIJKL@gitea.${EXTERNAL_IP}.nip.io/api/v1/users/${E2E_PRIMARY_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"bot_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
 export E2E_PRIMARY_SCM_TOKEN
 
 cat bdd/gitea/user.template.json | sed 's/USERNAME/'"$E2E_APPROVER_SCM_USER"'/' > approveruser.json
 curl -X POST "${GIT_SERVER_API}/api/v1/admin/users" -H "accept: application/json" -H "Content-Type: application/json" -d @approveruser.json
-E2E_APPROVER_SCM_TOKEN=$(curl -X POST "${GIT_SERVER_API}/api/v1/users/${E2E_APPROVER_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"approver_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
+E2E_APPROVER_SCM_TOKEN=$(curl -X POST "http://approver:ab_d1234HIJKL@gitea.${EXTERNAL_IP}.nip.io/api/v1/users/${E2E_APPROVER_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"approver_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
 export E2E_APPROVER_SCM_TOKEN
 
 

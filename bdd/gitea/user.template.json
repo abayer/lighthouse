@@ -4,7 +4,7 @@
   "full_name": "USERNAME",
   "login_name": "USERNAME",
   "must_change_password": false,
-  "password": "a@b%d1234HIJKL",
+  "password": "ab_d1234HIJKL",
   "send_notify": false,
   "source_id": 0,
   "username": "USERNAME"
