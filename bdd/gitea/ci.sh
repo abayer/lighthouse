@@ -80,8 +80,8 @@ helm3 repo update
 cat bdd/gitea/gitea.values.yaml.template | sed 's/EXTERNAL_IP/'"$EXTERNAL_IP"'/' > gitea.values.yaml
 helm3 install --namespace lh-test -f gitea.values.yaml gitea gitea-charts/gitea
 
-# Sleep for 30 seconds to make sure gitea comes up
-sleep 30
+# Sleep for 60 seconds to make sure gitea comes up
+sleep 60
 
 E2E_GIT_SERVER="http://gitea.${EXTERNAL_IP}.nip.io"
 GIT_SERVER_API="http://gitea_admin:abcdEFGH@gitea.${EXTERNAL_IP}.nip.io"
