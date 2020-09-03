@@ -96,8 +96,11 @@ if [[ "${giteaPodReady}" != "true" ]]; then
   exit 1;
 fi
 
+adminPwd="abcdEFGH"
+userPwd="ab_d1234HIJKL"
+
 E2E_GIT_SERVER="http://gitea.${EXTERNAL_IP}.nip.io"
-GIT_SERVER_API="http://gitea_admin:abcdEFGH@gitea.${EXTERNAL_IP}.nip.io"
+GIT_SERVER_API="http://gitea_admin:${adminPwd}@gitea.${EXTERNAL_IP}.nip.io"
 export E2E_GIT_SERVER
 
 # And then loop for a bit to make sure it's actually serving properly
@@ -120,12 +123,12 @@ cat bdd/gitea/user.template.json | sed 's/USERNAME/'"$E2E_PRIMARY_SCM_USER"'/' >
 curl -X POST "${GIT_SERVER_API}/api/v1/admin/users" -H "accept: application/json" -H "Content-Type: application/json" -d @primaryuser.json
 # edit to give admin
 curl -X PATCH "${GIT_SERVER_API}/api/v1/admin/users/${E2E_PRIMARY_SCM_USER}" -H "accept: application/json" -H "Content-Type: application/json" -d @primaryuser.json
-E2E_PRIMARY_SCM_TOKEN=$(curl -X POST "http://lighthouse-bot:ab_d1234HIJKL@gitea.${EXTERNAL_IP}.nip.io/api/v1/users/${E2E_PRIMARY_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"bot_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
+E2E_PRIMARY_SCM_TOKEN=$(curl -X POST "http://lighthouse-bot:${userPwd}@gitea.${EXTERNAL_IP}.nip.io/api/v1/users/${E2E_PRIMARY_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"bot_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
 export E2E_PRIMARY_SCM_TOKEN
 
 cat bdd/gitea/user.template.json | sed 's/USERNAME/'"$E2E_APPROVER_SCM_USER"'/' > approveruser.json
 curl -X POST "${GIT_SERVER_API}/api/v1/admin/users" -H "accept: application/json" -H "Content-Type: application/json" -d @approveruser.json
-E2E_APPROVER_SCM_TOKEN=$(curl -X POST "http://approver:ab_d1234HIJKL@gitea.${EXTERNAL_IP}.nip.io/api/v1/users/${E2E_APPROVER_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"approver_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
+E2E_APPROVER_SCM_TOKEN=$(curl -X POST "http://approver:${userPwd}@gitea.${EXTERNAL_IP}.nip.io/api/v1/users/${E2E_APPROVER_SCM_USER}/tokens" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"name\":\"approver_token_name\"}" | sed 's/.*"sha1":"\([^"]*\)".*/\1/')
 export E2E_APPROVER_SCM_TOKEN
 
 
