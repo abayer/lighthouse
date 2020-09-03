@@ -74,12 +74,13 @@ func CreateSCMClient(userFunc func() string, tokenFunc func() (string, error)) (
 	kind := GitKind()
 	serverURL := os.Getenv(gitServerEnvVar)
 
-	client, err := factory.NewClient(kind, serverURL, "")
-
 	token, err := tokenFunc()
 	if err != nil {
 		return nil, nil, "", err
 	}
+
+	client, err := factory.NewClient(kind, serverURL, token)
+
 	util.AddAuthToSCMClient(client, token, false)
 
 	spc := scmprovider.ToClient(client, userFunc())

@@ -20,7 +20,7 @@ func NewKeeperController(configAgent *config.Agent, botName string, gitKind stri
 		return NewGitHubAppKeeperController(githubAppSecretDir, configAgent, botName, gitKind, maxRecordsPerPool, historyURI, statusURI, ns)
 	}
 
-	scmClient, err := factory.NewClient(gitKind, serverURL, "")
+	scmClient, err := factory.NewClient(gitKind, serverURL, gitToken)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create SCM client")
 	}
