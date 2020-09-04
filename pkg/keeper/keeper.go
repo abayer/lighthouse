@@ -1457,6 +1457,7 @@ func (c *DefaultController) dividePool(pool map[string]PullRequest, pjs []v1alph
 		}
 		fn := poolKey(org, repo, branch)
 		if sps[fn] == nil {
+			c.logger.Warnf("Trying to get ref for branchRef %s", branchRef)
 			sha, err := c.spc.GetRef(org, repo, strings.TrimPrefix(branchRef, "refs/"))
 			if err != nil {
 				return nil, err
