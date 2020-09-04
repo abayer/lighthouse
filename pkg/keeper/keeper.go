@@ -1674,13 +1674,15 @@ func restAPISearch(spc scmProviderClient, log *logrus.Entry, queries keeper.Quer
 			searchOpts.UpdatedBefore = &end
 		}
 
+		log.Warnf("listing all prs for %s", repo)
 		prs, err := spc.ListAllPullRequestsForFullNameRepo(repo, searchOpts)
 		if err != nil {
+			log.WithError(err).Errorf("blew up listing for %s", repo)
 			return nil, errors.Wrapf(err, "listing all open pull requests for %s", repo)
 		}
 
 		var repoData *scm.Repository
-
+		log.Warnf("listed %d PRs for %s", len(prs), repo)
 		// Iterate over the PRs to see if they match the relevant queries
 		for _, pr := range prs {
 			prLabels := make(map[string]struct{})
@@ -1745,12 +1747,14 @@ func restAPISearch(spc scmProviderClient, log *logrus.Entry, queries keeper.Quer
 					repoData = scmRepo
 				}
 
+				log.Warnf("about to to graphql conversion for pr %d", pr.Number)
 				gpr := scmPRToGraphQLPR(pr, repoData)
+				log.Warnf("about to get head contexts for pr %d", pr.Number)
 				_, err := headContexts(log, spc, gpr)
 				if err != nil {
 					log.WithError(err).Error("Getting head contexts but ignoring.")
 				}
-
+				log.Warnf("past that")
 				relevantPRs = append(relevantPRs, *gpr)
 			}
 		}
