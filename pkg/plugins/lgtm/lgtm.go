@@ -199,7 +199,7 @@ func handleGenericComment(spc scmProviderClient, config *plugins.Configuration, 
 		assignees:   e.Assignees,
 		number:      e.Number,
 	}
-
+	log.Warnf("is PR? %t - state: %s - action: %s - body: %s", e.IsPR, e.IssueState, e.Action, e.Body)
 	// Only consider open PRs and new comments.
 	if !e.IsPR || e.IssueState != "open" || e.Action != scm.ActionCreate {
 		return nil
