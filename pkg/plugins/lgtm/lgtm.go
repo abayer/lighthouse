@@ -271,7 +271,7 @@ func handle(wantLGTM bool, config *plugins.Configuration, ownersClient repoowner
 	htmlURL := rc.htmlURL
 	org := rc.repo.Namespace
 	repoName := rc.repo.Name
-
+	log.Warnf("rc.body: %s", rc.body)
 	// Author cannot LGTM own PR, comment and abort
 	isAuthor := author == issueAuthor
 	if isAuthor && wantLGTM {
