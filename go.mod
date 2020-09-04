@@ -34,6 +34,6 @@ require (
 
 replace k8s.io/client-go => k8s.io/client-go v0.17.6
 
-replace github.com/jenkins-x/go-scm => github.com/abayer/go-scm v1.5.1-0.20200904135949-3fa135d23771
+replace github.com/jenkins-x/go-scm => github.com/abayer/go-scm v1.5.1-0.20200904165948-7978e0979d16
 
 go 1.13
