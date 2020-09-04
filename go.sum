@@ -140,6 +140,8 @@ github.com/abayer/go-scm v1.5.1-0.20200904135949-3fa135d23771 h1:88VuVE/2KgR9oyW
 github.com/abayer/go-scm v1.5.1-0.20200904135949-3fa135d23771/go.mod h1:wJgj7PfgsCs+YAXC0vEj43g48HKf94apSyza62ADxKY=
 github.com/abayer/go-scm v1.5.1-0.20200904165948-7978e0979d16 h1:zHYiyOKogh07HybWY0S+8rY/ismwUZgb0C3IFKoM5Z0=
 github.com/abayer/go-scm v1.5.1-0.20200904165948-7978e0979d16/go.mod h1:wJgj7PfgsCs+YAXC0vEj43g48HKf94apSyza62ADxKY=
+github.com/abayer/go-scm v1.5.1-0.20200904171938-79e956deac12 h1:BIE5BGGZVHqrPt8M38bHbCb2J2tAU83Z+vq7EyJY9r0=
+github.com/abayer/go-scm v1.5.1-0.20200904171938-79e956deac12/go.mod h1:wJgj7PfgsCs+YAXC0vEj43g48HKf94apSyza62ADxKY=
 github.com/agnivade/levenshtein v1.0.1/go.mod h1:CURSv5d9Uaml+FovSIICkLbAUZ9S4RqaHDIsdSBg7lM=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7/go.mod h1:6zEj6s6u/ghQa61ZWa/C2Aw3RkjiTBOix7dkqa1VLIs=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
