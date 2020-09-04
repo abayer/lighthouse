@@ -109,7 +109,7 @@ func main() {
 		logrus.WithError(err).Fatal("error starting config map watcher")
 	}
 	defer cfgMapWatcher.Stop()
-
+	logrus.Warnf("Got past starting the configmap watcher")
 	botName := o.botName
 	if botName == "" {
 		botName = util.GetBotName(configAgent.Config)
@@ -135,7 +135,7 @@ func main() {
 	if err != nil {
 		logrus.WithError(err).Fatal("Error creating Keeper controller.")
 	}
-
+	logrus.Warnf("Starting keeper controller I guess?")
 	cfg := configAgent.Config
 	c, err := githubapp.NewKeeperController(configAgent, botName, gitKind, gitToken, serverURL, o.maxRecordsPerPool, o.historyURI, o.statusURI, o.namespace)
 	if err != nil {
@@ -145,7 +145,7 @@ func main() {
 	http.Handle("/", c)
 	http.Handle("/history", c.GetHistory())
 	server := &http.Server{Addr: ":" + strconv.Itoa(o.port)}
-
+	logrus.Warnf("Got the keeper controller, now let's sync")
 	start := time.Now()
 	sync(c)
 	if o.runOnce {

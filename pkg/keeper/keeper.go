@@ -307,7 +307,7 @@ func (c *DefaultController) Sync() error {
 	}()
 	defer c.changedFiles.prune()
 
-	c.logger.Debug("Building keeper pool.")
+	c.logger.Warnf("Building keeper pool.")
 	prs := make(map[string]PullRequest)
 	if c.spc.SupportsGraphQL() {
 		for _, query := range c.config().Keeper.Queries {
@@ -326,6 +326,7 @@ func (c *DefaultController) Sync() error {
 			}
 		}
 	} else {
+		c.logger.Warnf("rest API search time")
 		results, err := restAPISearch(c.spc, c.logger, c.config().Keeper.Queries, time.Time{}, time.Now())
 		if err != nil {
 			c.logger.WithError(err).Warnf("failed to perform REST query for PRs")
