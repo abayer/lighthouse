@@ -17,6 +17,7 @@ limitations under the License.
 package webhook
 
 import (
+	"github.com/ghodss/yaml"
 	"net/url"
 	"strconv"
 	"sync"
@@ -99,7 +100,8 @@ func (s *Server) handlePullRequestCommentEvent(l *logrus.Entry, pc scm.PullReque
 		"url":                    pc.Comment.Link,
 	})
 	l.Infof("PR comment %s.", pc.Action)
-
+	pcy, _ := yaml.Marshal(pc)
+	l.Warnf("HOOK IS : %s", string(pcy))
 	s.handleGenericComment(
 		l,
 		&scmprovider.GenericCommentEvent{
