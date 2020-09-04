@@ -340,7 +340,7 @@ func (c *DefaultController) Sync() error {
 	}
 	c.logger.WithField(
 		"duration", time.Since(start).String(),
-	).Debugf("Found %d (unfiltered) pool PRs.", len(prs))
+	).Warnf("Found %d (unfiltered) pool PRs.", len(prs))
 
 	var lhjs []v1alpha1.LighthouseJob
 	var blocks blockers.Blockers
@@ -372,11 +372,13 @@ func (c *DefaultController) Sync() error {
 			}
 		}
 	}
+	c.logger.Warnf("about to divide pools")
 	// Partition PRs into subpools and filter out non-pool PRs.
 	rawPools, err := c.dividePool(prs, lhjs)
 	if err != nil {
 		return err
 	}
+	c.logger.Warnf("about to filter subpools")
 	filteredPools := c.filterSubpools(c.config().Keeper.MaxGoroutines, rawPools)
 
 	// Notify statusController about the new pool.
@@ -389,12 +391,14 @@ func (c *DefaultController) Sync() error {
 	}
 	c.sc.Unlock()
 
+	c.logger.Warnf("about to sync subpools")
 	// Sync subpools in parallel.
 	poolChan := make(chan Pool, len(filteredPools))
 	subpoolsInParallel(
 		c.config().Keeper.MaxGoroutines,
 		filteredPools,
 		func(sp *subpool) {
+			c.logger.Warnf("filtering subpool")
 			pool, err := c.syncSubpool(*sp, blocks.GetApplicable(sp.org, sp.repo, sp.branch))
 			if err != nil {
 				sp.log.WithError(err).Errorf("Error syncing subpool.")
@@ -408,6 +412,7 @@ func (c *DefaultController) Sync() error {
 	for pool := range poolChan {
 		pools = append(pools, pool)
 	}
+	c.logger.Warnf("sorting pools")
 	sortPools(pools)
 	c.m.Lock()
 	c.pools = pools
